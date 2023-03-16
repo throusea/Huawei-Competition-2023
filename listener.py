@@ -5,6 +5,7 @@ from robot import RobotState
 from robot import RobotCommand
 from edge import Edge
 from workbench import Workbench
+from workbench import WorkbenchState
 
 class listener:
 
@@ -31,6 +32,32 @@ class listener:
             robcom.robot.state = RobotState.IDLE
         return
 
+
+    def collect(self, rob: [Robot], bench: [Workbench]):
+        frame: int = input()
+        money: int = input()
+        num_bench: int = input()
+        for i in range(1, num_bench+1):
+            garbage = input()
+            garbage = input()
+            garbage = input()
+            bench[i].state = input()
+            ### miss to define whether the materials are ready or not
+            con:int = input()
+            if con == 1:
+                bench[i].container = WorkbenchState.FULL
+            else:
+                bench[i].container = WorkbenchState.EMPTY
+
+
+        for i in range(1, 5):
+            ### miss to define the nearest workbench
+            rob[i].loadingitem = input() ###need to be change
+            ### miss to define the time and collision coefficient
+            rob[i].w = input()
+            rob[i].vel = (input(), input())
+            rob[i].rot = input()
+            rob[i].pos = (input(), input())
 
 
 
