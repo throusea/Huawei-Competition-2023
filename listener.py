@@ -1,23 +1,38 @@
+import math
+
 from robot import Robot
 from robot import RobotState
+from robot import RobotCommand
+from edge import Edge
+from workbench import Workbench
 
 class listener():
-    'pass'
 
+   def __init__(self):
+        return
 
-    def __init__(self, r1_state: RobotState, r2_state: RobotState, r3_state: RobotState, r4_state: RobotState):
-        self.r1_last_state = r1_state
-        self.r2_last_state = r2_state
-        self.r3_last_state = r3_state
-        self.r4_last_state = r4_state
+    def check_dis(self, robcom: RobotCommand, bench: Workbench):
+        rob: Robot = robcom.robot
+        dis: float = math.dist(rob.pos, bench.pos)
+        v: float = 0.12
+        t: float = dis/v
+        if (t >= bench.status) and (bench.status != -1):
+            return True
+        else
+            return False
 
-    def change_one_robot(self, rob: Robot, ls: RobotState):
-        pass
-    def change_state(self, r1: Robot, r2: Robot, r3: Robot, r4: Robot, ):
-        self.change_one_robot(self, r1, self.r1_last_state, )
-        self.change_one_robot(self, r2, self.r2_last_state)
-        self.change_one_robot(self, r3, self.r3_last_state)
-        self.change_one_robot(self, r4, self.r4_last_state)
+    def change_robotcommand(self, robcom: RobotCommand, edge: Edge, bench: Workbench):
+        rob: Robot = robcom.robot
+        if rob.state == RobotState.IDLE and self.check_dis(robcom, bench): #change date to taking
+            robcom.robot.state = RobotState.TAKING
+            robcom.target = edge.relay
+        elif rob.state == RobotState.TAKING and rob.loadingItem is not None: #change date to loading
+            robcom.robot.state = RobotState.LOADING
+            robcom.target = edge.relay
+        elif rob.state == RobotState.LOADING and rob.loadingItem is None: #change date to idle
+            robcom.robot.state = RobotState.IDLE
+        return
+
 
 
 

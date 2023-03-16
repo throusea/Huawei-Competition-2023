@@ -8,12 +8,13 @@ class RobotState(Enum):
     LOADING = 1
 
 class Robot():
-    def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item):
+    def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item, state: RobotState):
         self.pos = pos # position
         self.vel = vel # velocity
         self.acc = acc # accelerate
         self.rot = rot # rotation
         self.w = w     # angle velocity
+        self.state = state
         self.loadingItem = loadingItem
 
 
