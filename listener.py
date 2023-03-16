@@ -6,10 +6,7 @@ from robot import RobotCommand
 from edge import Edge
 from workbench import Workbench
 
-class listener():
-
-   def __init__(self):
-        return
+class listener:
 
     def check_dis(self, robcom: RobotCommand, bench: Workbench):
         rob: Robot = robcom.robot
@@ -18,12 +15,13 @@ class listener():
         t: float = dis/v
         if (t >= bench.status) and (bench.status != -1):
             return True
-        else
+        else:
             return False
 
-    def change_robotcommand(self, robcom: RobotCommand, edge: Edge, bench: Workbench):
+
+    def change_robotcommand(self, robcom: RobotCommand, edge: Edge):
         rob: Robot = robcom.robot
-        if rob.state == RobotState.IDLE and self.check_dis(robcom, bench): #change date to taking
+        if rob.state == RobotState.IDLE and self.check_dis(robcom, edge.relay): #change date to taking
             robcom.robot.state = RobotState.TAKING
             robcom.target = edge.relay
         elif rob.state == RobotState.TAKING and rob.loadingItem is not None: #change date to loading
