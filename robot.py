@@ -3,7 +3,8 @@ from enum import Enum
 from workbench import Workbench
 
 class RobotState(Enum):
-    EMPTY = 0
+    IDLE = -1
+    TAKING = 0
     LOADING = 1
 
 class Robot():
