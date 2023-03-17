@@ -17,7 +17,7 @@ def init_test():
         Edge(workbenches[0], workbenches[1]),
         Edge(workbenches[1], workbenches[0])
     ]
-    graph = Graph(workbenches, edges)
+    graph = Graph(workbenches)
     robots = [
         Robot((0, 0), (0, 0), 1, 1, 1, Item(1)),
         Robot((0, 0), (1, 1), 1, 50, 4, Item(2))

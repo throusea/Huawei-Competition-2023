@@ -3,8 +3,8 @@ from enum import Enum
 from workbench import Workbench
 
 class RobotState(Enum):
-    EMPTY = 0
-    LOADING = 1
+    IDLE = 0
+    RUNNING = 1
 
 class Robot():
     def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item):
@@ -14,7 +14,12 @@ class Robot():
         self.rot = rot # rotation
         self.w = w     # angle velocity
         self.loadingItem = loadingItem
-
+        self.loadingTask = None
+        self.state = RobotState.IDLE
+    
+    def set_task(self, e):
+        e.set_cmd(self)
+        self.loadingTask = e
 
 
 # You can define some global value such as maximun force or maximun velocity
