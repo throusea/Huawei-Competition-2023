@@ -3,16 +3,18 @@ from enum import Enum
 from workbench import Workbench
 
 class RobotState(Enum):
-    IDLE = 0
-    RUNNING = 1
+    IDLE = -1
+    TAKING = 0
+    LOADING = 1
 
 class Robot():
-    def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item):
+    def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item, state: RobotState):
         self.pos = pos # position
         self.vel = vel # velocity
         self.acc = acc # accelerate
         self.rot = rot # rotation
         self.w = w     # angle velocity
+        self.state = state
         self.loadingItem = loadingItem
         self.loadingTask = None
         self.state = RobotState.IDLE
