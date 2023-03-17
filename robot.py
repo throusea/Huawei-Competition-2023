@@ -4,14 +4,14 @@ from workbench import Workbench
 
 class RobotState(Enum):
     IDLE = -1
-    TAKING = 0
-    LOADING = 1
+    TAKING = 0  # the state to take the item
+    DELIVERING = 1 # the state to sell the item
 
 class Robot():
-    def __init__(self, pos: tuple, vel: tuple, acc: float, rot: float, w: float, loadingItem: Item, state: RobotState):
+    def __init__(self, pos: tuple, vel: tuple, rot: float, w: float, loadingItem: Item, state: RobotState):
         self.pos = pos # position
         self.vel = vel # velocity
-        self.acc = acc # accelerate
+        # self.acc = acc # accelerate
         self.rot = rot # rotation
         self.w = w     # angle velocity
         self.state = state

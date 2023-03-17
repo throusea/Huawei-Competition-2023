@@ -11,8 +11,7 @@ class EdgeState(Enum):
 
 class Edge:
     def __init__(self, fo: Workbench, to: Workbench):
-        self.depart = depart
-        self.relay = relay
+        self.fo = fo
         self.to = to
         self.dis = math.dist(fo.pos, to.pos)
         self.state = EdgeState.IDLE

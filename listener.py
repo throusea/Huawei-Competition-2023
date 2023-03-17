@@ -5,9 +5,14 @@ from robot import RobotState
 from robot import RobotCommand
 from edge import Edge
 from workbench import Workbench
-from workbench import WorkbenchState
+from path_planning import PathPlanning
+from robot_control import RobotControl
 
-class listener:
+class MyListenser:
+
+    def __init__(self, plan: PathPlanning, ctrl: RobotControl):
+        self.plan = plan
+        self.ctrl = ctrl
 
     def check_dis(self, robcom: RobotCommand, bench: Workbench):
         rob: Robot = robcom.robot

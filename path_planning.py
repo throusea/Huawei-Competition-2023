@@ -1,8 +1,7 @@
 from graph import Graph
 from edge import Edge
 from robot import Robot, RobotState
-from workbench import Workbench
-from workbench import DISABLE_WORKBWNCH
+from workbench import Workbench, DISABLE_WORKBENCH
 from queue import Queue
 import time
 

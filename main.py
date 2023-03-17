@@ -7,6 +7,7 @@ from robot import Robot
 from item import Item
 from edge import Edge
 from workbench import Workbench
+from listener import MyListenser
 
 def init_test():
     workbenches = [
@@ -24,6 +25,8 @@ def init_test():
     ]
     pplan = PathPlanning(graph, robots)
     bCont = RobotControl()
+    listener = MyListenser(pplan, bCont)
+    listener.collect(robots, workbenches)
     pass
 
 def read_util_ok():
