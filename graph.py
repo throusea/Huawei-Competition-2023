@@ -39,14 +39,14 @@ class Graph():
         return is_in_set(w.ty, self.disable_bench) == False and w.output == 1
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
-        return is_in_set(w2.ty, self.disable_bench) == False and is_in_set(w1.ty, w2.inputs) == False
+        return is_in_set(w2.ty, self.disable_bench) == False and is_in_set(w1.ty, ITEM_INPUT[w2.ty]) == False
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None
         dist = 114514
         for w in (self.workbenches):
-            if self.is_active_outbench(w) and math.dist(w.pos, pos) < dist:
-                dist = math.dist(w.pos, pos)
+            if self.is_active_outbench(w) and myutil.dist(w.pos, pos) < dist:
+                dist = myutil.dist(w.pos, pos)
                 near_w = w
         return near_w
     
