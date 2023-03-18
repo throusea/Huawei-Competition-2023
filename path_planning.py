@@ -38,9 +38,15 @@ class PathPlanning:
 
     def select_one_edge(self, rob: Robot):
         w1: Workbench = self.graph.nearest_active_bench(rob.pos)
+        if w1 == None:
+            return None
+        print(w1.ty)
         w2: Workbench = self.graph.nearest_active_inbench(w1)
+        if w2 == None:
+            return None
+        print(w2.ty)
         # self.running_queue.put((e, frame))
-        return copy(e)
+        return copy(Edge(w1, w2))
 
     def get_robots(self):
         return self.robots
@@ -56,6 +62,12 @@ class PathPlanning:
         cmd_list = []
         for b in self.robots:
             if b.state == RobotState.IDLE:
-                b.state = RobotState.RUNNING
                 e = self.select_one_edge(b)
                 b.set_task(e)
+    
+    def get_all_tasktype_fm_rob(self):
+        tasks = []
+        for i, rob in enumerate(self.robots):
+            if rob.loadingTask != None:
+                tasks.append((i, rob.loadingTask.fo.ty, rob.loadingTask.to.ty))
+        return tasks

@@ -8,7 +8,7 @@ class RobotState(Enum):
     DELIVERING = 1 # the state to sell the item
 
 class Robot():
-    def __init__(self, pos: tuple, vel: tuple, rot: float, w: float, loadingItem: Item, state: RobotState):
+    def __init__(self, pos: tuple, vel: float=0, rot: float=0, w: float=0, loadingItem: int=-1, state: RobotState=RobotState.IDLE):
         self.pos = pos # position
         self.vel = vel # velocity
         # self.acc = acc # accelerate
@@ -20,7 +20,7 @@ class Robot():
         self.state = RobotState.IDLE
     
     def set_task(self, e):
-        e.set_cmd(self)
+        # e.set_cmd(self)
         self.loadingTask = e
 
 

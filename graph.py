@@ -51,9 +51,12 @@ class Graph():
     
     def nearest_active_inbench(self, w1: Workbench):
         near_w = None
-        dis = 114514
+        dist = 114514
         for w2 in self.workbenches:
-            if self.is_active_inbench(w2) and math.dist(w1.pos. w2.pos):
+            print(w2.pos)
+            if w1.id == w2.id:
+                continue
+            if self.is_active_inbench(w1, w2) and math.dist(w1.pos, w2.pos) < dist:
                 dist = math.dist(w1.pos, w2.pos)
                 near_w = w2
         return near_w

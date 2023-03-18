@@ -24,5 +24,5 @@ class Workbench:
         self.ty = ty
         self.status = status
         self.inputs = inputs
-        self.output = output
+        self.output = output # 0 is none and 1 is ok
         self.pos = pos  # position (from transform)
