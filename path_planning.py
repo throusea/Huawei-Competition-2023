@@ -22,12 +22,8 @@ class PathPlanning:
         self.running_queue = Queue()  # item is (Edge, frame)
 
 
-    def pri(self):
-        print(self.robots)
-        print(self.graph.workbenches)
-
     def init_task(self):
-        self.pri()
+
         self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1), dtype=Edge)
         # init the task robot can do
         self.graph.create_edges()
@@ -40,11 +36,11 @@ class PathPlanning:
         w1: Workbench = self.graph.nearest_active_bench(rob.pos)
         if w1 == None:
             return None
-        print(w1.ty)
+
         w2: Workbench = self.graph.nearest_active_inbench(w1)
         if w2 == None:
             return None
-        print(w2.ty)
+
         # self.running_queue.put((e, frame))
         return copy(Edge(w1, w2))
 

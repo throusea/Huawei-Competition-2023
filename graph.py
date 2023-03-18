@@ -53,7 +53,7 @@ class Graph():
         near_w = None
         dist = 114514
         for w2 in self.workbenches:
-            print(w2.pos)
+
             if w1.id == w2.id:
                 continue
             if self.is_active_inbench(w1, w2) and math.dist(w1.pos, w2.pos) < dist:
