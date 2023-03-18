@@ -42,7 +42,7 @@ class MyListenser:
                 rc.buy(rob)
 
             if rob.itemId != 0:
-                rob.state = RobotState.LOADING
+                rob.state = RobotState.DELIVERING
                 return edge.to.id
         else:
             if rob.itemId != 0 and near == edge.to.id:
