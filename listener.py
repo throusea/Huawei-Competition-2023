@@ -11,7 +11,7 @@ class MyListenser:
     def __init__(self, plan: PathPlanning):
         self.plan = plan
         self.rob : [Robot] = self.plan.get_robots()
-        self.bench : [] = self.plan.get_workbench()
+        self.bench : [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0, 0]
 
     def check_dis(self, rob: Robot, bench: Workbench):
@@ -26,7 +26,9 @@ class MyListenser:
 
     def change_robot_command(self, rc: RobotControl,  rob: Robot, edge: Edge, near : int):
         if rob.state == RobotState.IDLE:
-            if edge.fo.container == 1:
+            if edge == None:
+                return 0
+            if edge.fo.output == 1:
                 rob.state = RobotState.TAKING
                 return edge.fo.id
             else:
@@ -53,71 +55,82 @@ class MyListenser:
 
     def collect(self):
         p : int = 0
-        frame = int(input())
-        money = int(input())
-        num_bench = int(input())
+        s = input()
+        s = s.split(' ')
 
-        for i in range(1, num_bench+1):
-            typ = input()
-            ben_pos : tuple = (input(), input())
-            self.bench[i].state = int(input())
-            self.bench[i].inputs = int(input())
-            self.bench[i].output = int(input())
+        frame = int(s[0])
+        money = int(s[1])
+        s = input()
+        num_bench = int(s)
 
+        for i in range(0, num_bench):
+            s = input()
+            s = s.split(' ')
 
-        for i in range(1, 5):
-            l = []
-            for j in range(1, 11):
-                l.append(input())
-            self.near[i] = int(l[0])+1
-            self.rob[i].itemId = int(l[1])
-            self.rob[i].w = float(l[4])
-            self.rob[i].vel = ( float(l[5]), float(l[6]))
-            self.rob[i].rot = float(l[7])
-            self.rob[i].pos = ( float(l[8]), float(l[9]))
+            type = s[0]
+            ben_pos : tuple = (s[1], s[2])
+            self.bench[i].status = int(s[3])
+            self.bench[i].inputs = int(s[4])
+            self.bench[i].output = int(s[5])
+            print(self.bench[i])
+
+        for i in range(0, 4):
+            s = input()
+            s = s.split(' ')
+
+            self.near[i] = int(s[0])+1
+            self.rob[i].itemId = int(s[1])
+            self.rob[i].w = float(s[4])
+            self.rob[i].vel = (float(s[5])**2 + float(s[6])**2)**0.5
+            self.rob[i].rot = float(s[7])
+            self.rob[i].pos = (float(s[8]), float(s[9]))
+            print(self.rob[i])
+
         return frame
     def interact(self):
         rc = RobotControl()
         frame = self.collect()
         target = [0]
-        for i in range (1, 5):
+        for i in range (0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
 
-        col = rc.collision_pred(self.rob)
-        if col != 0:
+        col = rc.collision_predict(self.rob)
+        if col != [False, False, False, False]:
             p1 = 0
             p2 = 0
-            for i in range(1, 5):
-                if ((1<<i)&col) != 0:
+            for i in range(0, 4):
+                if col[i]:
                     if p1 == 0:
                         p1 = i
                     else:
                         p2 = i
-        rc.collsion_avoid(self.rob[p1], self.rob[p2])
+            rc.collision_avoid(self.rob[p1], self.rob[p2])
 
         for i in range (1, 5):
-            if ((1<<i)&col) == 0:
-                rc.forward(self.rob[i], self.bench[target[i]])
+            if not col[i]:
+                rc.forward(self.rob[i])
 
         self.plan.update_idle_queue(frame)
         self.plan.init_task()
 
     def init_data(self):
-        cnt_rob = 0
-        cnt_ben = 0
+        cnt_rob = -1
+        cnt_ben = -1
 
         for i in range(1, 101):
+            inp = input()
             for j in range(1, 101):
-                c = input()
+                c = inp[j-1]
                 if c == 'A':
                     cnt_rob += 1
-                    new_rob = Robot(cnt_rob, (float(i-1)*0.5+0.25, 50-0.25-float(i-1)*0.5))
+                    new_rob = Robot(cnt_rob, (float(j-1)*0.5+0.25, 50-0.25-float(i-1)*0.5))
                     self.rob.append(new_rob)
+                    print(str(new_rob.id)+" "+str(new_rob.pos[0])+" "+str(new_rob.pos[1]))
                 elif c == '.':
                     pass
                 else:
                     cnt_ben += 1
-                    new_ben = Workbench(cnt_ben, int(c), (float(i-1)*0.5+0.25, 50-0.25-float(i-1)*0.5))
+                    new_ben = Workbench(cnt_ben, int(c), (float(j-1)*0.5+0.25, 50-0.25-float(i-1)*0.5))
                     self.bench.append(new_ben)
 
         self.plan.init_task()
