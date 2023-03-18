@@ -30,3 +30,4 @@ if __name__ == '__main__':
         listener.interact()
         finish()
         read_util_ok()
+    listener.close_file()
