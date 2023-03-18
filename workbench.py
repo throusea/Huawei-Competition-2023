@@ -4,12 +4,12 @@ from enum import Enum
 # The disable workbench set if the workbench is disabled
 NEXT_WORKBENCH = [
     0,
-    110000,
-    1010000,
-    1100000,
-    10000000,
-    10000000,
-    10000000
+    0b110000,
+    0b1010000,
+    0b1100000,
+    0b10000000,
+    0b10000000,
+    0b10000000
 ]
 
 # class WorkbenchState(Enum):

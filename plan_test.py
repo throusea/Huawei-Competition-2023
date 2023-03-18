@@ -5,10 +5,10 @@ from robot import Robot
 
 
 robs = [
-    Robot((25, 25)),
-    Robot((25, 42)),
-    Robot((42, 25)),
-    Robot((12, 25))
+    Robot(0, (25, 25)),
+    Robot(1, (25, 42)),
+    Robot(2, (42, 25)),
+    Robot(3, (12, 25))
 ]
 
 wbs = [
@@ -34,3 +34,5 @@ wbs[1].output = 1
 wbs[2].output = 1
 pln.allocate_rob()
 print(pln.get_all_tasktype_fm_rob())
+
+print(graph.is_active_inbench(wbs[0], wbs[3]))

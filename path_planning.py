@@ -42,7 +42,7 @@ class PathPlanning:
             return None
 
         # self.running_queue.put((e, frame))
-        return copy(Edge(w1, w2))
+        return Edge(w1, w2)
 
     def get_robots(self):
         return self.robots
