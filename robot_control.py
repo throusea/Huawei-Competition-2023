@@ -11,16 +11,17 @@ def mov_predict(robot: Robot, last: int):
 
 
 class RobotControl:
-    kp_f = 0.5
-    kd_f = 0.5
-    kp_r = 0.5
-    kd_r = 0.5
+    kp_f = 10
+    kd_f = 2
+    kp_r = 30
+    kd_r = 5
 
     forward_ban = []
 
     def forward(self, robot: Robot):
         for i in self.forward_ban:
             if i == robot.id:
+                self.rotate(robot)
                 return
         if robot.state == RobotState.IDLE:
             return
@@ -32,16 +33,26 @@ class RobotControl:
                 bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
         next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
         print("forward %d %f" % (robot.id, next_vel))
+        self.rotate(robot)
 
     def rotate(self, robot: Robot):
         if robot.state == RobotState.TAKING:
             bench = robot.loadingTask.fo
         else:
             bench = robot.loadingTask.to
-        angle = math.atan((bench.pos[1] - robot.pos[1]) / (bench.pos[0] - robot.pos[0]))
+        if bench.pos[0] == robot.pos[0]:
+            if bench.pos[1] > robot.pos[0]:
+                angle = math.pi/2
+            else:
+                angle = -math.pi/2
+        else:
+            angle = math.atan((bench.pos[1] - robot.pos[1]) / (bench.pos[0] - robot.pos[0]))
+        if angle < 0:
+            angle = angle + math.pi
         if bench.pos[1] < robot.pos[1]:
             angle = angle + math.pi
-        next_w = max(-math.pi, min(self.kp_r * angle - self.kd_r * robot.w, math.pi))
+        da = angle - robot.rot
+        next_w = max(-math.pi, min(self.kp_r * da - self.kd_r * robot.w, math.pi))
         print("rotate %d %f" % (robot.id, next_w))
 
     def buy(self, robot: Robot):
