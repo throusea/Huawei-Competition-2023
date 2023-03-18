@@ -13,7 +13,7 @@ class MyListenser:
         self.plan = plan
         self.rob: [Robot] = self.plan.get_robots()
         self.bench: [Workbench] = self.plan.get_workbenches()
-        self.near = [0, 0, 0, 0, 0]
+        self.near = [0, 0, 0, 0]
         self.date = open("date.txt", "w")
 
     def check_dis(self, rob: Robot, bench: Workbench):
@@ -104,7 +104,7 @@ class MyListenser:
         for i in range(0, 4):
             if not occ[i]:
                 rc.forward(self.rob[i])
-        self.date.write("Frame:%s\n"%(frame))
+        self.date.write(str("Frame:%s\n"%(frame)))
         self.date.write(str(self.near)+"\n")
         for i in range(0, 4):
             self.date.write(str(self.rob[i]) + "\n")
