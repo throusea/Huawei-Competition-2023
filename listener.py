@@ -75,7 +75,7 @@ class MyListenser:
             s = input()
             s = s.split(' ')
 
-            self.near[i] = int(s[0]) + 1
+            self.near[i] = int(s[0])
             self.rob[i].itemId = int(s[1])
             self.rob[i].w = float(s[4])
             self.rob[i].vel = (float(s[5]) ** 2 + float(s[6]) ** 2) ** 0.5
@@ -105,6 +105,7 @@ class MyListenser:
             if not occ[i]:
                 rc.forward(self.rob[i])
         self.date.write("Frame:%s\n"%(frame))
+        self.date.write(str(self.near)+"\n")
         for i in range(0, 4):
             self.date.write(str(self.rob[i]) + "\n")
 
