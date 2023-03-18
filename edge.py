@@ -21,3 +21,6 @@ class Edge:
     def set_cmd(self, robot: Robot):
         self.cmd1 = RobotCommand(robot, self.fo)
         self.cmd2 = RobotCommand(robot, self.to)
+    
+    def get_frame(self):
+        return (int) (self.dis * 25 / 3)

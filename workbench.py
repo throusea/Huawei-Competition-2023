@@ -2,14 +2,14 @@ from item import Item
 from enum import Enum
 
 # The disable workbench set if the workbench is disabled
-DISABLE_WORKBENCH = [
-    [],
-    [4,5],
-    [4,6],
-    [5,6],
-    [7],
-    [7],
-    [7]
+NEXT_WORKBENCH = [
+    0,
+    110000,
+    1010000,
+    1100000,
+    10000000,
+    10000000,
+    10000000
 ]
 
 # class WorkbenchState(Enum):
@@ -19,7 +19,7 @@ DISABLE_WORKBENCH = [
 #     DISABLE = 3
 
 class Workbench:
-    def __init__(self, id:int, pos:tuple, status: int=-1, inputs: int=0, output: int=0):
+    def __init__(self, id:int, pos:tuple, status: int=-1, disable: bool=False, inputs: int=0, output: int=0):
         self.id = id
         self.status = status
         self.inputs = inputs
