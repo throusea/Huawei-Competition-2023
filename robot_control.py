@@ -21,6 +21,8 @@ class RobotControl:
         for i in self.forward_ban:
             if i == robot.id:
                 return
+        if robot.state == RobotState.IDLE:
+            return
         if robot.state == RobotState.TAKING:
             bench = robot.loadingTask.fo
         else:
@@ -64,6 +66,10 @@ class RobotControl:
 
     def collision_avoid(self, robot1: Robot, robot2: Robot):
         self.forward_ban.clear()
+        if robot1.state == RobotState.IDLE:
+            return
+        if robot2.state == RobotState.IDLE:
+            return
         self.forward_ban.append(robot1.id)
         self.forward_ban.append(robot2.id)
 
