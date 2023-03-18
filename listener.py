@@ -107,6 +107,7 @@ class MyListenser:
 
         self.plan.update_idle_queue(frame)
         self.plan.init_task()
+        print("OK")
 
     def init_data(self):
         cnt_rob = -1
