@@ -4,6 +4,7 @@ from robot import Robot, RobotState
 from workbench import Workbench, NEXT_WORKBENCH
 from queue import Queue
 import time
+import numpy as np
 from copy import copy
 
 # class Task:
@@ -13,14 +14,21 @@ from copy import copy
 #         self.sell_to = sell_to
 
 class PathPlanning:
-    def __init__(self, graph: Graph, robots: [Robot]):
+    def __init__(self, graph: Graph, robots: [Robot] = []):
         self.graph = graph
         self.robots = robots
         self.num_of_wid = [0 for _ in range(8)]
         self.idle_queue = Queue()     # item is Edge
         self.running_queue = Queue()  # item is (Edge, frame)
 
+
+    def pri(self):
+        print(self.robots)
+        print(self.graph.workbenches)
+
     def init_task(self):
+        self.pri()
+        self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1), dtype=Edge)
         # init the task robot can do
         self.graph.create_edges()
         for e in self.graph.edges:
@@ -36,10 +44,10 @@ class PathPlanning:
 
     def get_robots(self):
         return self.robots
-    
+
     def get_workbenches(self):
         return self.graph.workbenches
-    
+
     def update_idle_queue(self, frame: int):
         while self.running_queue.empty() is False:
             self.idle_queue.put(self.running_queue.get())
