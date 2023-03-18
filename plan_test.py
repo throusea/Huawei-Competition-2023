@@ -20,7 +20,7 @@ wbs = [
     Workbench(5, 6, (2,1)),
     Workbench(6, 7, (2,11)),
     Workbench(7, 8, (2,21)),
-    Workbench(8, 9, (2,31))
+    Workbench(8, 9, (31,31))
 ]
 
 graph = Graph(wbs)

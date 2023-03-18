@@ -13,7 +13,7 @@ class Graph():
         self.workbenches = workbenches
         self.edge_matrix = np.zeros((len(workbenches)+1, len(workbenches)+1), dtype=Edge)
         self.edges = []
-        self.num_of_wid = [0] * 9
+        self.num_of_wid = [0] * 10
         self.disable_bench = 0
     
     def create_edges(self):
@@ -31,15 +31,15 @@ class Graph():
         wbs = self.workbenches
         for w in wbs:
             self.num_of_wid[w.ty] += 1
-        for i in range(8):
+        for i in range(1,10):
             if self.num_of_wid[i] == 0:
-                self.disable_bench |= NEXT_WORKBENCH[i+1]
+                self.disable_bench |= NEXT_WORKBENCH[i]
     
     def is_active_outbench(self, w: Workbench):
         return is_in_set(w.ty, self.disable_bench) == False and w.output == 1
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
-        return (is_in_set(w2.ty, self.disable_bench) == False) and (is_in_set(w1.ty, ITEM_INPUT[w2.ty]) == False)
+        return (is_in_set(w2.ty, self.disable_bench) == False) and (is_in_set(w1.ty, ITEM_INPUT[w2.ty]))
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None
@@ -54,9 +54,13 @@ class Graph():
         near_w = None
         dist = 114514
         for w2 in self.workbenches:
+            if w2 == None:
+                raise Exception("Workbenches is None")
             if w1.id == w2.id:
                 continue
-            if self.is_active_inbench(w1, w2) and myutil.dist(w1.pos, w2.pos) < dist:
+            # if self.is_active_inbench(w1, w2) and w2.ty == 4:
+                # raise Exception(format("Error! %d" % w1.ty))
+            if self.is_active_inbench(w1, w2) == True and myutil.dist(w1.pos, w2.pos) < dist:
                 dist = myutil.dist(w1.pos, w2.pos)
                 near_w = w2
         return near_w

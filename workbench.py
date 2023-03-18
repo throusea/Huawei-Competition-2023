@@ -9,7 +9,10 @@ NEXT_WORKBENCH = [
     0b1100000,
     0b10000000,
     0b10000000,
-    0b10000000
+    0b10000000,
+    0,
+    0,
+    0
 ]
 
 # class WorkbenchState(Enum):
