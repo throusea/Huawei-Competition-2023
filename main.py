@@ -29,5 +29,6 @@ if __name__ == '__main__':
     read_util_ok()
     finish()
     while True:
+        read_util_ok()
         listener.interact()
         finish()

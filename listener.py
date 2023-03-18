@@ -54,7 +54,6 @@ class MyListenser:
 
 
     def collect(self):
-        p : int = 0
         s = input()
         s = s.split(' ')
 
@@ -108,8 +107,6 @@ class MyListenser:
 
         self.plan.update_idle_queue(frame)
         self.plan.init_task()
-        print("OK")
-
     def init_data(self):
         cnt_rob = -1
         cnt_ben = -1
