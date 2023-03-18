@@ -72,7 +72,6 @@ class MyListenser:
             self.bench[i].status = int(s[3])
             self.bench[i].inputs = int(s[4])
             self.bench[i].output = int(s[5])
-            print(self.bench[i])
 
         for i in range(0, 4):
             s = input()
@@ -84,7 +83,6 @@ class MyListenser:
             self.rob[i].vel = (float(s[5])**2 + float(s[6])**2)**0.5
             self.rob[i].rot = float(s[7])
             self.rob[i].pos = (float(s[8]), float(s[9]))
-            print(self.rob[i])
 
         return frame
     def interact(self):
@@ -95,19 +93,16 @@ class MyListenser:
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
 
         col = rc.collision_predict(self.rob)
-        if col != [False, False, False, False]:
-            p1 = 0
-            p2 = 0
-            for i in range(0, 4):
-                if col[i]:
-                    if p1 == 0:
-                        p1 = i
-                    else:
-                        p2 = i
-            rc.collision_avoid(self.rob[p1], self.rob[p2])
+        occ = [False, False, False, False]
+        for i in range(0, 4):
+            for j in range(i+1, 4):
+                if col[i][j]:
+                    occ[i] = True
+                    occ[j] = True
+                    rc.collision_avoid(self.rob[i], self.rob[j])
 
-        for i in range (1, 5):
-            if not col[i]:
+        for i in range (0, 4):
+            if not occ[i]:
                 rc.forward(self.rob[i])
 
         self.plan.update_idle_queue(frame)
@@ -125,7 +120,7 @@ class MyListenser:
                     cnt_rob += 1
                     new_rob = Robot(cnt_rob, (float(j-1)*0.5+0.25, 50-0.25-float(i-1)*0.5))
                     self.rob.append(new_rob)
-                    print(str(new_rob.id)+" "+str(new_rob.pos[0])+" "+str(new_rob.pos[1]))
+                    #print(str(new_rob.id)+" "+str(new_rob.pos[0])+" "+str(new_rob.pos[1]))
                 elif c == '.':
                     pass
                 else:
