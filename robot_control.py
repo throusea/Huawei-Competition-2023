@@ -3,6 +3,12 @@ from workbench import Workbench
 import math
 
 
+def mov_predict(robot: Robot, last: int):
+    dx = robot.vel * math.cos(robot.rot) * 0.02 * last
+    dy = robot.vel * math.sin(robot.rot) * 0.02 * last
+    return robot.pos[0] + dx, robot.pos[1] + dy
+
+
 class RobotControl:
     kp_f = 0.5
     kd_f = 0.5
@@ -41,18 +47,13 @@ class RobotControl:
     def sell(self, robot: Robot):
         print("sell %d" % robot.id)
 
-    def mov_predict(self, robot: Robot, last: int):
-        dx = robot.vel * math.cos(robot.rot) * 0.02 * last
-        dy = robot.vel * math.sin(robot.rot) * 0.02 * last
-        return robot.pos[0] + dx, robot.pos[1] + dy
-
     def collision_predict(self, robots: [Robot]):
         result = [[False, False, False, False], [False, False, False, False], [False, False, False, False],
                   [False, False, False, False]]
         for i in range(1, 16):
             poses = []
             for j in range(0, 4):
-                poses.append(self.mov_predict(self, robots[j], i))
+                poses.append(mov_predict(robots[j], i))
             for j in range(0, 3):
                 for k in range(j + 1, 4):
                     dist = ((poses[j][0] - poses[k][0]) ** 2 + (poses[j][1] - poses[k][1]) ** 2) ** 0.5

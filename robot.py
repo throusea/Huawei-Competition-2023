@@ -8,7 +8,8 @@ class RobotState(Enum):
     DELIVERING = 1 # the state to sell the item
 
 class Robot():
-    def __init__(self, pos: tuple, vel: float=0, rot: float=0, w: float=0, loadingItem: int=-1, state: RobotState=RobotState.IDLE):
+    def __init__(self,id: int,  pos: tuple, vel: float=0, rot: float=0, w: float=0, loadingItem: int=-1, state: RobotState=RobotState.IDLE):
+        self.id = id #id
         self.pos = pos # position
         self.vel = vel # velocity
         # self.acc = acc # accelerate

@@ -24,7 +24,6 @@ if __name__ == '__main__':
 
 
     pplan = PathPlanning(Graph())
-    bCont = RobotControl()
     listener = MyListenser(pplan)
     listener.init_data()
     read_util_ok()
