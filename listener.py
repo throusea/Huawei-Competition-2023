@@ -104,11 +104,15 @@ class MyListenser:
         for i in range(0, 4):
             if not occ[i]:
                 rc.forward(self.rob[i])
-
+        self.date.write("Frame:%s\n"%(frame))
         for i in range(0, 4):
             self.date.write(str(self.rob[i]) + "\n")
+
+        for i in range(0, len(self.bench)):
+            self.date.write(str(self.bench[i]) + "\n")
+        self.date.write("\n")
         self.plan.update_idle_queue(frame)
-        self.plan.init_task()
+        self.plan.allocate_rob()
         self.date.flush()
 
     def init_data(self):
