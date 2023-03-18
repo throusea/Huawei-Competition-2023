@@ -9,25 +9,6 @@ from edge import Edge
 from workbench import Workbench
 from listener import MyListenser
 
-def init_test():
-    workbenches = [
-        Workbench(0, (1, 1)),
-        Workbench(0, (2, 2))
-    ]
-    edges = [
-        Edge(workbenches[0], workbenches[1]),
-        Edge(workbenches[1], workbenches[0])
-    ]
-    graph = Graph(workbenches)
-    robots = [
-        Robot((0, 0), (0, 0), 1, 1, 1, Item(1)),
-        Robot((0, 0), (1, 1), 1, 50, 4, Item(2))
-    ]
-    pplan = PathPlanning(graph, robots)
-    bCont = RobotControl()
-    listener = MyListenser(pplan, bCont)
-    listener.collect(robots, workbenches)
-    pass
 
 def read_util_ok():
     while input() != "OK":
@@ -40,20 +21,14 @@ def finish():
 
 
 if __name__ == '__main__':
-    init_test() # judge whether the initiation (or the code) is OK
+
+
+    pplan = PathPlanning(Graph())
+    bCont = RobotControl()
+    listener = MyListenser(pplan)
+    listener.init_data()
     read_util_ok()
     finish()
     while True:
-        line = sys.stdin.readline()
-        if not line:
-            break
-        parts = line.split(' ')
-        frame_id = int(parts[0])
-        read_util_ok()
-
-        sys.stdout.write('%d\n' % frame_id)
-        line_speed, angle_speed = 3, 1.5
-        for robot_id in range(4):
-            sys.stdout.write('forward %d %d\n' % (robot_id, line_speed))
-            sys.stdout.write('rotate %d %f\n' % (robot_id, angle_speed))
+        listener.interact()
         finish()

@@ -8,7 +8,7 @@ def is_in_set(b: int, b_set: int):
     return (b_set & (1<<b)) != 0
 
 class Graph():
-    def __init__(self, workbeches: [Workbench]):
+    def __init__(self, workbeches: [Workbench] = []):
         self.workbenches = workbeches
         self.edge_matrix = np.zeros((len(workbeches)+1, len(workbeches)+1))
         self.edges = None
@@ -23,6 +23,7 @@ class Graph():
                     self.edge_matrix[i][j] = e
                 else:
                     self.edge_matrix[i][j] = None
+
     
     def anaylse_wb(self):
         wbs = self.workbenches

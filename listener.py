@@ -1,5 +1,4 @@
 import math
-
 from robot import Robot
 from robot import RobotState
 from edge import Edge

@@ -19,8 +19,9 @@ NEXT_WORKBENCH = [
 #     DISABLE = 3
 
 class Workbench:
-    def __init__(self, id:int, pos:tuple, status: int=-1, disable: bool=False, inputs: int=0, output: int=0):
+    def __init__(self, id:int, ty: int, pos:tuple, status: int=-1, disable: bool=False, inputs: int=0, output: int=0):
         self.id = id
+        self.ty = ty
         self.status = status
         self.inputs = inputs
         self.output = output
