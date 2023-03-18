@@ -12,9 +12,9 @@ def mov_predict(robot: Robot, last: int):
 
 class RobotControl:
     kp_f = 10
-    kd_f = 10
+    kd_f = 2
     kp_r = 30
-    kd_r = 0.5
+    kd_r = 5
 
     forward_ban = []
 
@@ -47,6 +47,8 @@ class RobotControl:
                 angle = -math.pi/2
         else:
             angle = math.atan((bench.pos[1] - robot.pos[1]) / (bench.pos[0] - robot.pos[0]))
+        if angle < 0:
+            angle = angle + math.pi
         if bench.pos[1] < robot.pos[1]:
             angle = angle + math.pi
         da = angle - robot.rot
