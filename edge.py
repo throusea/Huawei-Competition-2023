@@ -1,5 +1,4 @@
 from workbench import Workbench
-from robot import RobotCommand, Robot
 from enum import Enum
 import math
 
@@ -18,5 +17,7 @@ class Edge:
         self.cmd1 = None
         self.cmd2 = None
 
+    def __str__(self):
+        return ("Edge:[\nfo:%s\nto:%s\ndis:%s, state:%s\n]"%(self.fo, self.to, self.dis, self.state))
     def get_frame(self):
         return (int) (self.dis * 25 / 3)

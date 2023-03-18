@@ -1,4 +1,4 @@
-import math
+import myutil
 from robot import Robot
 from robot import RobotState
 from edge import Edge
@@ -15,7 +15,7 @@ class MyListenser:
         self.near = [0, 0, 0, 0, 0]
 
     def check_dis(self, rob: Robot, bench: Workbench):
-        dis: float = math.dist(rob.pos, bench.pos)
+        dis: float = myutil.dist(rob.pos, bench.pos)
         v: float = 0.12
         t: float = dis/v
         if (t >= bench.status) and (bench.status != -1):
@@ -85,6 +85,7 @@ class MyListenser:
 
         return frame
     def interact(self):
+        date = open("date.txt", "w")
         rc = RobotControl()
         frame = self.collect()
         print(frame)
@@ -105,8 +106,11 @@ class MyListenser:
             if not occ[i]:
                 rc.forward(self.rob[i])
 
+        for i in range (0, 4):
+            date.write(str(self.rob[i])+"\n")
         self.plan.update_idle_queue(frame)
         self.plan.init_task()
+
     def init_data(self):
         cnt_rob = -1
         cnt_ben = -1

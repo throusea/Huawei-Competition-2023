@@ -19,9 +19,7 @@ def finish():
     sys.stdout.write('OK\n')
     sys.stdout.flush()
 
-
 if __name__ == '__main__':
-
 
     pplan = PathPlanning(Graph())
     listener = MyListenser(pplan)
@@ -29,6 +27,6 @@ if __name__ == '__main__':
     read_util_ok()
     finish()
     while True:
-        read_util_ok()
         listener.interact()
         finish()
+        read_util_ok()
