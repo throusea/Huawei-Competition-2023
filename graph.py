@@ -1,4 +1,4 @@
-from workbench import Workbench
+from workbench import Workbench, NEXT_WORKBENCH
 from item import ITEM_INPUT
 from edge import Edge
 import numpy as np
@@ -8,18 +8,19 @@ def is_in_set(b: int, b_set: int):
     return (b_set & (1<<b)) != 0
 
 class Graph():
-    def __init__(self, workbeches: [Workbench] = []):
-        self.workbenches = workbeches
-        self.edge_matrix = np.zeros((len(workbeches)+1, len(workbeches)+1))
-        self.edges = None
+    def __init__(self, workbenches: [Workbench] = []):
+        self.workbenches = workbenches
+        self.edge_matrix = np.zeros((len(workbenches)+1, len(workbenches)+1), dtype=Edge)
+        self.edges = []
+        self.num_of_wid = [0] * 9
         self.disable_bench = 0
     
     def create_edges(self):
         for i, w1 in enumerate(self.workbenches):
             for j, w2 in enumerate(self.workbenches):
-                if w1.id in ITEM_INPUT[w2.id]:
+                if is_in_set(w1.ty, ITEM_INPUT[w2.ty]):
                     e = Edge(w1, w2)
-                    self.workbenches.append(e)
+                    self.edges.append(e)
                     self.edge_matrix[i][j] = e
                 else:
                     self.edge_matrix[i][j] = None
@@ -28,16 +29,16 @@ class Graph():
     def anaylse_wb(self):
         wbs = self.workbenches
         for w in wbs:
-            self.num_of_wid[w.id] += 1
+            self.num_of_wid[w.ty] += 1
         for i in range(8):
             if self.num_of_wid[i] == 0:
                 self.disable_bench |= NEXT_WORKBENCH[i+1]
     
     def is_active_outbench(self, w: Workbench):
-        return is_in_set(w.id, self.disable_bench) == False and w.output == 1
+        return is_in_set(w.ty, self.disable_bench) == False and w.output == 1
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
-        return is_in_set(w2.id, self.disable_bench) == False and is_in_set(w1.id, w2.inputs) == False
+        return is_in_set(w2.ty, self.disable_bench) == False and is_in_set(w1.ty, w2.inputs) == False
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None

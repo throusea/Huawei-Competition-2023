@@ -21,8 +21,14 @@ class PathPlanning:
         self.idle_queue = Queue()     # item is Edge
         self.running_queue = Queue()  # item is (Edge, frame)
 
+
+    def pri(self):
+        print(self.robots)
+        print(self.graph.workbenches)
+
     def init_task(self):
-        self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1))
+        self.pri()
+        self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1), dtype=Edge)
         # init the task robot can do
         self.graph.create_edges()
         for e in self.graph.edges:
