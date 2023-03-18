@@ -1,6 +1,6 @@
 from workbench import Workbench
 from enum import Enum
-import math
+import myutil
 
 # It is like a task
 class EdgeState(Enum):
@@ -12,7 +12,7 @@ class Edge:
     def __init__(self, fo: Workbench, to: Workbench):
         self.fo = fo
         self.to = to
-        self.dis = math.dist(fo.pos, to.pos)
+        self.dis = myutil.dist(fo.pos, to.pos)
         self.state = EdgeState.IDLE
         self.cmd1 = None
         self.cmd2 = None
