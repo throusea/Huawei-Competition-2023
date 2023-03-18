@@ -3,6 +3,7 @@ from item import ITEM_INPUT
 from edge import Edge
 import numpy as np
 import math
+import myutil
 
 def is_in_set(b: int, b_set: int):
     return (b_set & (1<<b)) != 0
@@ -56,8 +57,8 @@ class Graph():
 
             if w1.id == w2.id:
                 continue
-            if self.is_active_inbench(w1, w2) and math.dist(w1.pos, w2.pos) < dist:
-                dist = math.dist(w1.pos, w2.pos)
+            if self.is_active_inbench(w1, w2) and myutil.dist(w1.pos, w2.pos) < dist:
+                dist = myutil.dist(w1.pos, w2.pos)
                 near_w = w2
         return near_w
 
