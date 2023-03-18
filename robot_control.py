@@ -21,7 +21,6 @@ class RobotControl:
     def forward(self, robot: Robot):
         for i in self.forward_ban:
             if i == robot.id:
-                self.rotate(robot)
                 return
         if robot.state == RobotState.IDLE:
             return
@@ -51,7 +50,12 @@ class RobotControl:
             angle = angle + math.pi
         if bench.pos[1] < robot.pos[1]:
             angle = angle + math.pi
-        da = angle - robot.rot
+        if angle - robot.rot > math.pi:
+            da = angle-robot.rot-2*math.pi
+        elif angle - robot.rot < -math.pi:
+            da = angle-robot.rot+2*math.pi
+        else:
+            da = angle - robot.rot
         next_w = max(-math.pi, min(self.kp_r * da - self.kd_r * robot.w, math.pi))
         print("rotate %d %f" % (robot.id, next_w))
 
