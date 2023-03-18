@@ -88,6 +88,7 @@ class MyListenser:
     def interact(self):
         rc = RobotControl()
         frame = self.collect()
+        print(frame)
         target = [0]
         for i in range (0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
