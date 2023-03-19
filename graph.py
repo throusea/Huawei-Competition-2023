@@ -1,5 +1,5 @@
 from workbench import Workbench, NEXT_WORKBENCH
-from item import ITEM_INPUT
+from item import ITEM_INPUT, ITEM_BUY, ITEM_SELL
 from edge import Edge
 import numpy as np
 import math
@@ -64,20 +64,28 @@ class Graph():
                 dist = myutil.dist(w1.pos, w2.pos)
                 near_w = w2
         return near_w
+    
+    def get_profit(self, item_id: int):
+        return ITEM_SELL[item_id] - ITEM_BUY[item_id]
 
     def get_active_edge(self, r_pos):
         ans_w = (None, None)
         dist = (114514, 1919810) 
+        profit = 0
         for w1 in self.workbenches:
             if w1 == None:
                 raise Exception("Workbenches is None")
             for w2 in self.workbenches:
                 if w1 == w2:
                     continue
+                dist_tmp = (myutil.dist(r_pos, w1.pos), myutil.dist(w1.pos, w2.pos))
+                # if w1.ty <= 7:
+                #     print(w1.ty, w2.ty, self.get_profit(w1.ty) / (dist_tmp[0] + dist_tmp[1]))
                 if self.is_active_outbench(w1) and self.is_active_inbench(w1, w2) and\
-                   myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos) < dist[0] + dist[1] and\
+                   self.get_profit(w1.ty) / (dist_tmp[0] + dist_tmp[1]) > profit / (dist[0] + dist[1]) and\
                    self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False:
-                    dist = (myutil.dist(r_pos, w1.pos) , myutil.dist(w1.pos, w2.pos))
+                    dist = dist_tmp
+                    profit = self.get_profit(w1.ty)
                     ans_w = (w1, w2)
         return ans_w
 

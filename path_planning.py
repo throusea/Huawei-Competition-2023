@@ -53,6 +53,11 @@ class PathPlanning:
 
     def get_workbenches(self):
         return self.graph.workbenches
+    
+    # unlock one Robot which turn from TAKING to DELIVERING
+    def unlock_first(self, rob: Robot):
+        w1 = rob.loadingTask.fo
+        w1.setLock(w1.ty, False)
 
     # unlock one Robot which turn from DELIVERING to IDLE
     def unlock(self, rob: Robot, frame: int):
