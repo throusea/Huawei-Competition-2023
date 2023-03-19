@@ -11,10 +11,10 @@ def mov_predict(robot: Robot, last: int):
 
 
 class RobotControl:
-    kp_f = 10
-    kd_f = 2
+    kp_f = 7
+    kd_f = 1
     kp_r = 30
-    kd_r = 5
+    kd_r = 3
 
     forward_ban = []
 
@@ -49,11 +49,13 @@ class RobotControl:
         next_w = max(-math.pi, min(self.kp_r * da - self.kd_r * robot.w, math.pi))
         print("rotate %d %f" % (robot.id, next_w))
 
-        if 1 > robot.w > -1 < next_w < 1:
+        if 0.1 > da > -0.1:
             distance = ((bench.pos[0] - robot.pos[0]) ** 2 + (
                     bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
             next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
             print("forward %d %f" % (robot.id, next_vel))
+        else:
+            print("forward %d %f" % (robot.id, -robot.vel*self.kd_f))
 
 
     def buy(self, robot: Robot):
