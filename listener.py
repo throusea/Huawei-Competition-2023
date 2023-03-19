@@ -54,11 +54,6 @@ class MyListenser:
 
     def collect(self):
         s = input()
-        s = s.split(' ')
-
-        frame = int(s[0])
-        money = int(s[1])
-        s = input()
         num_bench = int(s)
 
         for i in range(0, num_bench):
@@ -82,11 +77,21 @@ class MyListenser:
             self.rob[i].rot = float(s[7])
             self.rob[i].pos = (float(s[8]), float(s[9]))
 
-        return frame
 
+
+    def check_EOF(self):
+        try:
+            s = input()
+            s = s.split()
+            self.frame = s[0]
+            return True
+        except EOFError:
+            return False
     def interact(self):
         rc = RobotControl()
-        self.frame = self.collect()
+        if not self.check_EOF():
+            return False
+        self.collect()
         print(self.frame)
         target = [0]
         for i in range(0, 4):
@@ -94,12 +99,13 @@ class MyListenser:
 
         col = rc.collision_predict(self.rob)
         occ = [False, False, False, False]
-        #for i in range(0, 4):
-            #for j in range(i + 1, 4):
-                #if col[i][j]:
-                    #occ[i] = True
-                    #occ[j] = True
-                    #rc.collision_avoid(self.rob[i], self.rob[j])
+
+        """for i in range(0, 4):
+            for j in range(i + 1, 4):
+                if col[i][j]:
+                    occ[i] = True
+                    occ[j] = True
+                    rc.collision_avoid(self.rob[i], self.rob[j])"""
 
         for i in range(0, 4):
             if not occ[i]:
@@ -115,6 +121,8 @@ class MyListenser:
         self.plan.update_idle_queue(self.frame)
         self.plan.allocate_rob()
         self.date.flush()
+
+        return True
 
     def init_data(self):
         cnt_rob = -1
