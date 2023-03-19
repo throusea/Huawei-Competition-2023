@@ -15,6 +15,7 @@ class MyListenser:
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
         self.date = open("date.txt", "w")
+        self.frame = 0
 
     def check_dis(self, rob: Robot, bench: Workbench):
         dis: float = myutil.dist(rob.pos, bench.pos)
@@ -33,10 +34,7 @@ class MyListenser:
                 rob.state = RobotState.TAKING
                 return edge.fo.id
             else:
-                if self.check_dis(rob, edge.fo):
-                    return edge.fo.id
-                else:
-                    return int(0)
+                return edge.fo.id
         elif rob.state == RobotState.TAKING:
             if rob.itemId == 0 and near == edge.fo.id:
                 rc.buy(rob)
@@ -50,6 +48,8 @@ class MyListenser:
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
+                unlock(rob, self.frame)
+                rob.loadingTask = None
                 return 0
 
     def collect(self):
@@ -86,20 +86,20 @@ class MyListenser:
 
     def interact(self):
         rc = RobotControl()
-        frame = self.collect()
-        print(frame)
+        self.frame = self.collect()
+        print(self.frame)
         target = [0]
         for i in range(0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
 
         col = rc.collision_predict(self.rob)
         occ = [False, False, False, False]
-        for i in range(0, 4):
-            for j in range(i + 1, 4):
-                if col[i][j]:
-                    occ[i] = True
-                    occ[j] = True
-                    rc.collision_avoid(self.rob[i], self.rob[j])
+        #for i in range(0, 4):
+            #for j in range(i + 1, 4):
+                #if col[i][j]:
+                    #occ[i] = True
+                    #occ[j] = True
+                    #rc.collision_avoid(self.rob[i], self.rob[j])
 
         for i in range(0, 4):
             if not occ[i]:
@@ -112,7 +112,7 @@ class MyListenser:
         for i in range(0, len(self.bench)):
             self.date.write(str(self.bench[i]) + "\n")
         self.date.write("\n")
-        self.plan.update_idle_queue(frame)
+        self.plan.update_idle_queue(self.frame)
         self.plan.allocate_rob()
         self.date.flush()
 
