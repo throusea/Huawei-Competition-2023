@@ -29,4 +29,4 @@ if __name__ == '__main__':
     while listener.interact():
         finish()
         read_util_ok()
-    listener.close_file()
+    #listener.close_file()
