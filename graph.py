@@ -65,6 +65,22 @@ class Graph():
                 near_w = w2
         return near_w
 
+    def get_active_edge(self, r_pos):
+        ans_w = (None, None)
+        dist = (114514, 1919810) 
+        for w1 in self.workbenches:
+            if w1 == None:
+                raise Exception("Workbenches is None")
+            for w2 in self.workbenches:
+                if w1 == w2:
+                    continue
+                if self.is_active_outbench(w1) and self.is_active_inbench(w1, w2) and\
+                   myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos) < dist[0] + dist[1] and\
+                   self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False:
+                    dist = (myutil.dist(r_pos, w1.pos) , myutil.dist(w1.pos, w2.pos))
+                    ans_w = (w1, w2)
+        return ans_w
+
     def print_edges(self):
         print(self.edge_matrix)
         

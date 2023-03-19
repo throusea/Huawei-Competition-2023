@@ -19,5 +19,6 @@ class Edge:
 
     def __str__(self):
         return ("Edge:[\nfo:%s\nto:%s\ndis:%s, state:%s\n]"%(self.fo, self.to, self.dis, self.state))
+    
     def get_frame(self):
         return (int) (self.dis * 25 / 3)

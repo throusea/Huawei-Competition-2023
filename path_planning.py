@@ -33,12 +33,15 @@ class PathPlanning:
         pass
 
     def select_one_edge(self, rob: Robot):
-        w1: Workbench = self.graph.nearest_active_bench(rob.pos)
-        if w1 == None:
-            return None
+        # w1: Workbench = self.graph.nearest_active_bench(rob.pos)
+        # if w1 == None:
+        #     return None
 
-        w2: Workbench = self.graph.nearest_active_inbench(w1)
-        if w2 == None:
+        # w2: Workbench = self.graph.nearest_active_inbench(w1)
+        # if w2 == None:
+        #     return None
+        w1, w2 = self.graph.get_active_edge(rob.pos)
+        if w1 == None or w2 == None:
             return None
         w1.setLock(w1.ty)
         w2.setLock(w1.ty)

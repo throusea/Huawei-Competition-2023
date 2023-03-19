@@ -33,6 +33,9 @@ wbs[0].output = 1
 wbs[1].output = 1
 wbs[2].output = 1
 pln.allocate_rob()
+
+for e in graph.edges:
+    print(e.__str__())
 print(pln.get_all_tasktype_fm_rob())
 
 print(graph.is_active_inbench(wbs[0], wbs[3]))

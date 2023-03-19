@@ -41,4 +41,4 @@ class Workbench:
         return myutil.is_in_set(item_id, self.lockset)
 
     def __str__(self):
-        return ("id:%s, ty:%s, pos:(%s, %s), status:%d, inputs: %s, output:%s"%(self.id, self.ty, self.pos[0], self.pos[1], self.status, self.inputs, self.output))
+        return ("id:%s, ty:%s, pos:(%s, %s), lockset: %d, status:%d, inputs: %s, output:%s"%(self.id, self.ty, self.pos[0], self.pos[1], self.lockset, self.status, self.inputs, self.output))

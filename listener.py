@@ -48,7 +48,7 @@ class MyListenser:
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
-                unlock(rob, self.frame)
+                self.plan.unlock(rob, self.frame)
                 rob.loadingTask = None
                 return 0
 
@@ -104,7 +104,7 @@ class MyListenser:
         for i in range(0, 4):
             if not occ[i]:
                 rc.forward(self.rob[i])
-        self.date.write(str("Frame:%s\n"%(frame)))
+        self.date.write(str("Frame:%s\n"%(self.frame)))
         self.date.write(str(self.near)+"\n")
         for i in range(0, 4):
             self.date.write(str(self.rob[i]) + "\n")
