@@ -48,7 +48,7 @@ class MyListenser:
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
-                self.graph.unlock(rob, self.frame)
+                self.plan.unlock(rob, self.frame)
                 rob.loadingTask = None
                 return 0
 
