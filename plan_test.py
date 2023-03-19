@@ -36,3 +36,5 @@ pln.allocate_rob()
 print(pln.get_all_tasktype_fm_rob())
 
 print(graph.is_active_inbench(wbs[0], wbs[3]))
+
+print(graph.is_benchlocked(wbs[0], 1))

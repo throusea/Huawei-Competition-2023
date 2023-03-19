@@ -1,5 +1,6 @@
 from item import Item
 from enum import Enum
+import myutil
 
 # The disable workbench set if the workbench is disabled
 NEXT_WORKBENCH = [
@@ -32,12 +33,12 @@ class Workbench:
         self.lockset = 0 # binary set, i-th bit means the i-th item
 
     def setLock(self, item_id: int, val: bool=True):
-        if is_in_set(item_id, self.lockset) ^ val == 0:
+        if myutil.is_in_set(item_id, self.lockset) ^ val == 0:
             raise Exception("The lock error!")
         self.lockset ^= 1<<item_id
     
     def isLock(self, item_id: int):
-        return is_in_set(item_id, self.lockset)
+        return myutil.is_in_set(item_id, self.lockset)
 
     def __str__(self):
         return ("id:%s, ty:%s, pos:(%s, %s), status:%d, inputs: %s, output:%s"%(self.id, self.ty, self.pos[0], self.pos[1], self.status, self.inputs, self.output))

@@ -40,7 +40,8 @@ class PathPlanning:
         w2: Workbench = self.graph.nearest_active_inbench(w1)
         if w2 == None:
             return None
-
+        w1.setLock(w1.ty)
+        w2.setLock(w1.ty)
         # self.running_queue.put((e, frame))
         return Edge(w1, w2)
 
@@ -50,9 +51,17 @@ class PathPlanning:
     def get_workbenches(self):
         return self.graph.workbenches
 
+    # unlock one Robot which turn from DELIVERING to IDLE
+    def unlock(self, rob: Robot, frame: int):
+        w1 = rob.loadingTask.fo
+        w2 = rob.loadingTask.to
+        w1.setLock(w1.ty, False)
+        w2.setLock(w1.ty, False)
+
     def update_idle_queue(self, frame: int):
-        while self.running_queue.empty() is False:
-            self.idle_queue.put(self.running_queue.get())
+        # while self.running_queue.empty() is False:
+            # self.idle_queue.put(self.running_queue.get())
+        pass
 
     def allocate_rob(self):
         cmd_list = []
