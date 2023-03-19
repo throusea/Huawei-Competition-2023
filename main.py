@@ -26,8 +26,7 @@ if __name__ == '__main__':
     listener.init_data()
     read_util_ok()
     finish()
-    while True:
-        listener.interact()
+    while listener.interact():
         finish()
         read_util_ok()
-    listener.close_file()
+    #listener.close_file()
