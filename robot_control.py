@@ -28,17 +28,7 @@ class RobotControl:
             bench = robot.loadingTask.fo
         else:
             bench = robot.loadingTask.to
-        distance = ((bench.pos[0] - robot.pos[0]) ** 2 + (
-                bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
-        next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
-        print("forward %d %f" % (robot.id, next_vel))
-        self.rotate(robot)
 
-    def rotate(self, robot: Robot):
-        if robot.state == RobotState.TAKING:
-            bench = robot.loadingTask.fo
-        else:
-            bench = robot.loadingTask.to
         if bench.pos[0] == robot.pos[0]:
             if bench.pos[1] > robot.pos[0]:
                 angle = math.pi/2
@@ -58,6 +48,13 @@ class RobotControl:
             da = angle - robot.rot
         next_w = max(-math.pi, min(self.kp_r * da - self.kd_r * robot.w, math.pi))
         print("rotate %d %f" % (robot.id, next_w))
+
+        if 1 > robot.w > -1 < next_w < 1:
+            distance = ((bench.pos[0] - robot.pos[0]) ** 2 + (
+                    bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
+            next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
+            print("forward %d %f" % (robot.id, next_vel))
+
 
     def buy(self, robot: Robot):
         print("buy %d" % robot.id)
