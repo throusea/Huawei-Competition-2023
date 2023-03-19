@@ -5,9 +5,6 @@ import numpy as np
 import math
 import myutil
 
-def is_in_set(b: int, b_set: int):
-    return (b_set & (1<<b)) != 0
-
 class Graph():
     def __init__(self, workbenches: [Workbench] = []):
         self.workbenches = workbenches
@@ -19,7 +16,7 @@ class Graph():
     def create_edges(self):
         for i, w1 in enumerate(self.workbenches):
             for j, w2 in enumerate(self.workbenches):
-                if is_in_set(w1.ty, ITEM_INPUT[w2.ty]):
+                if myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty]):
                     e = Edge(w1, w2)
                     self.edges.append(e)
                     self.edge_matrix[i][j] = e
@@ -36,10 +33,10 @@ class Graph():
                 self.disable_bench |= NEXT_WORKBENCH[i]
     
     def is_active_outbench(self, w: Workbench):
-        return is_in_set(w.ty, self.disable_bench) == False and w.output == 1
+        return myutil.is_in_set(w.ty, self.disable_bench) == False and w.output == 1
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
-        return (is_in_set(w2.ty, self.disable_bench) == False) and (is_in_set(w1.ty, ITEM_INPUT[w2.ty]))
+        return (myutil.is_in_set(w2.ty, self.disable_bench) == False) and (myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty])) and (myutil.is_in_set(w1.ty, w2.inputs)) == False
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None

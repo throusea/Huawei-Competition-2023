@@ -94,12 +94,12 @@ class MyListenser:
 
         col = rc.collision_predict(self.rob)
         occ = [False, False, False, False]
-        for i in range(0, 4):
-            for j in range(i + 1, 4):
-                if col[i][j]:
-                    occ[i] = True
-                    occ[j] = True
-                    rc.collision_avoid(self.rob[i], self.rob[j])
+        # for i in range(0, 4):
+        #     for j in range(i + 1, 4):
+        #         if col[i][j]:
+        #             occ[i] = True
+        #             occ[j] = True
+        #             rc.collision_avoid(self.rob[i], self.rob[j])
 
         for i in range(0, 4):
             if not occ[i]:
