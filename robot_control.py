@@ -34,6 +34,14 @@ def angle(p1: tuple, p2: tuple): # p1 -> p2!
         ag = ag + math.pi
     return ag
 
+def diff_angle(ag1: float, ag2: float): # the included angle between ag1 and ag2 (rotate from ag1 to ag2), in [-pi, pi]
+    diff = ag2 - ag1
+    if diff > math.pi:
+        diff = diff - 2 * math.pi
+    if diff < -math.pi:
+        diff = diff + 2 * math.pi
+    return diff
+
 def resultant_force(forces: [Force]): # the resultant force of many forces
     result=Force(0,0)
     for f in forces:
@@ -82,9 +90,10 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
         all_forces.append(repulsion(robot, r))
     all_forces.append(edge_repulsion(robot))
     all_forces.append(attraction(robot))
-    resultant = resultant_force(all_forces)
-
-    return 0,0
+    force = resultant_force(all_forces)
+    dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
+    cfm = force.magnitude()*math.cos(dag) # magnitude of component force on the direction of robot.rot
+    return kp_f * cfm - kd_f * robot.vel, kp_r * dag - kd_r * robot.w
 
 class RobotControl:
 
