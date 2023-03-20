@@ -49,9 +49,12 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 20
+krf = 19.5
 kef = 15
-kb = 6
+kb = 10
+
+
+
 def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
@@ -59,8 +62,12 @@ def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 g
     kdag = abs_da / math.pi * 0.7 + 0.3
     mag = max(1, krf / r ** 2) * kdag
     ag = angle(robot2.pos, robot1.pos)
-    fx = mag * math.cos(ag)
-    fy = mag * math.sin(ag)
+    if diff_angle(robot1.rot, ag) > 0:
+        ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    else:
+        ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    fx = mag*math.cos(ag)
+    fy = mag*math.sin(ag)
     return Force(fx,fy)
 
 def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
