@@ -49,15 +49,15 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 6
-kef = 6
-kb = 10
+krf = 20
+kef = 15
+kb = 6
 def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
     r = myutil.dist(robot1.pos, robot2.pos)
     mag = krf / r ** 2
     ag = angle(robot2.pos, robot1.pos)
-    fx = r * math.cos(ag)
-    fy = r * math.sin(ag)
+    fx = mag * math.cos(ag)
+    fy = mag * math.sin(ag)
     return Force(fx,fy)
 
 def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
@@ -75,27 +75,36 @@ def attraction(robot: Robot): # the attractive force that robot get from workben
     else:
         bench = robot.loadingTask.to
     ag = angle(robot.pos, bench.pos)
-    return Force(kb * math.cos(ag), kb * math.sin(ag))
+    d = myutil.dist(robot.pos,bench.pos)
+    mag = max(1,1/d**2)
+    return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
 
 kp_f = 7
-kd_f = 1
+kd_f = 4
 kp_r = 30
 kd_r = 3
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces = []
-    for r in other:
-        if r.id == robot.id:
+    for i in range(0,len(other)):
+        if other[i].id == robot.id:
             continue
-        all_forces.append(repulsion(robot, r))
+        all_forces.append(repulsion(robot, other[i]))
     all_forces.append(edge_repulsion(robot))
     all_forces.append(attraction(robot))
     force = resultant_force(all_forces)
     dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
-    cfm = force.magnitude()*math.cos(dag) # magnitude of component force on the direction of robot.rot
+    kdag = math.cos(dag)
+    if kdag > 0:
+        kdag = max(0, kdag - 0.2) / 0.8
+    else:
+        kdag = min(0, kdag + 0.2) / 0.8
+    cfm = force.magnitude()*kdag # magnitude of component force on the direction of robot.rot
     return kp_f * cfm - kd_f * robot.vel, kp_r * dag - kd_r * robot.w
 
 class RobotControl:
+
+    flag = [0,0,0,0]
 
     def __init__(self):
         pass
