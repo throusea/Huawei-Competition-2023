@@ -97,7 +97,7 @@ class MyListenser:
         for i in range(0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
 
-        col = rc.collision_predict(self.rob)
+        #col = rc.collision_predict(self.rob)
         occ = [False, False, False, False]
 
         """for i in range(0, 4):
@@ -109,7 +109,7 @@ class MyListenser:
 
         for i in range(0, 4):
             if not occ[i]:
-                rc.forward(self.rob[i])
+                rc.forward(self.rob[i], self.rob)
 
         """self.date.write(str("Frame:%s\n"%(self.frame)))
         self.date.write(str(self.near)+"\n")
@@ -150,6 +150,6 @@ class MyListenser:
         self.plan.init_task()
         pass
 
-    def close_file(self):
+    """def close_file(self):
         self.date.close()
-        pass
+        pass"""

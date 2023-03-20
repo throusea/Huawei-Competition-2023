@@ -54,8 +54,8 @@ kef = 6
 kb = 10
 def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
     r = myutil.dist(robot1.pos, robot2.pos)
-    mag = krt / r ** 2
-    ag = angle(robot2, robot1)
+    mag = krf / r ** 2
+    ag = angle(robot2.pos, robot1.pos)
     fx = r * math.cos(ag)
     fy = r * math.sin(ag)
     return Force(fx,fy)
