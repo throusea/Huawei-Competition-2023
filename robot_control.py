@@ -49,15 +49,20 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 20
+krf = 25
 kef = 15
 kb = 6
+
+
+
 def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
     r = myutil.dist(robot1.pos, robot2.pos)
-    mag = krf / r ** 2
+    mag = krf*(1/r**2)-0.05
+    mag = max(mag, 0)
     ag = angle(robot2.pos, robot1.pos)
-    fx = mag * math.cos(ag)
-    fy = mag * math.sin(ag)
+    ag = ag-math.sin(2*diff_angle(robot2.rot, ag)/math.pi-2)*math.pi/2
+    fx = mag*math.cos(ag)
+    fy = mag*math.sin(ag)
     return Force(fx,fy)
 
 def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
@@ -81,10 +86,10 @@ def attraction(robot: Robot): # the attractive force that robot get from workben
 
 kp_f = 7
 kd_f = 4
-kp_r = 30
+kp_r = 25
 kd_r = 3
 
-def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
+def next_velocity_and_angular_velocity(robot: Robot, other: [Robot]):
     all_forces = []
     for i in range(0,len(other)):
         if other[i].id == robot.id:
@@ -93,6 +98,7 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces.append(edge_repulsion(robot))
     all_forces.append(attraction(robot))
     force = resultant_force(all_forces)
+    cnt = 0
     dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
     kdag = math.cos(dag)
     if kdag > 0:
