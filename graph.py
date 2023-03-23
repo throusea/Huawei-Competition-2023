@@ -6,6 +6,8 @@ import numpy as np
 import math
 import myutil
 
+TOTAL_FRAME = 9000
+
 class Graph():
     def __init__(self, workbenches: [Workbench] = []):
         self.workbenches = workbenches
@@ -98,7 +100,7 @@ class Graph():
                 
         return False
 
-    def get_active_edge(self, r_pos, near_w: Workbench=None, robots: [Robot]=None):
+    def get_active_edge(self, r_pos, near_w: Workbench=None, robots: [Robot]=None, frame: int=0):
         ans_w = (None, None)
         # dist = (114514, 1919810)
         t = (114514, 1919810) 
@@ -116,7 +118,7 @@ class Graph():
                 if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
                    self.get_profit(w1.ty) / (t1 + t2) > profit / (t[0] + t[1]) and\
                    self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False and\
-                   self.any_more_great_robot(r_pos, w1, robots) == False:
+                   self.any_more_great_robot(r_pos, w1, robots) == False and t1+t2 <= TOTAL_FRAME - frame:
                     # dist = dist_tmp
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty)
