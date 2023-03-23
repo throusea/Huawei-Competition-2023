@@ -4,12 +4,23 @@ import math
 import myutil
 
 
+class Force:
+    def __init__(self, x:float, y:float):
+        self.x=x
+        self.y=y
+
+    def angle(self):
+        return angle((0,0),(self.x,self.y))
+
+    def magnitude(self):
+        return myutil.dist((0,0),(self.x,self.y))
+
 def mov_predict(robot: Robot, last: int):
     dx = robot.vel * math.cos(robot.rot) * 0.02 * last
     dy = robot.vel * math.sin(robot.rot) * 0.02 * last
     return robot.pos[0] + dx, robot.pos[1] + dy
 
-def angle(p1: tuple, p2: tuple): # p2 -> p1!
+def angle(p1: tuple, p2: tuple): # p1 -> p2!
     if p2[0] == p1[0]:
         if p2[1] > p1[0]:
             ag = math.pi / 2
@@ -23,137 +34,99 @@ def angle(p1: tuple, p2: tuple): # p2 -> p1!
         ag = ag + math.pi
     return ag
 
+def diff_angle(ag1: float, ag2: float): # the included angle between ag1 and ag2 (rotate from ag1 to ag2), in [-pi, pi]
+    diff = ag2 - ag1
+    if diff > math.pi:
+        diff = diff - 2 * math.pi
+    if diff < -math.pi:
+        diff = diff + 2 * math.pi
+    return diff
+
+def resultant_force(forces: [Force]): # the resultant force of many forces
+    result=Force(0,0)
+    for f in forces:
+        result.x = result.x+f.x
+        result.y = result.y+f.y
+    return result
+
+krf = 19.5
+kef = 15
+kb = 10
+
+
+
+def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
+    r = myutil.dist(robot1.pos, robot2.pos)
+    da = diff_angle(robot1.rot, robot2.rot)
+    abs_da = max(da, -da)
+    kdag = abs_da / math.pi * 0.7 + 0.3
+    mag = max(1, krf / r ** 2) * kdag
+    ag = angle(robot2.pos, robot1.pos)
+    if diff_angle(robot1.rot, ag) > 0:
+        ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    else:
+        ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    fx = mag*math.cos(ag)
+    fy = mag*math.sin(ag)
+    return Force(fx,fy)
+
+def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
+    fl = Force(kef / robot.pos[0] ** 2, 0)
+    fr = Force(-kef / (50 - robot.pos[0]) ** 2, 0)
+    fc = Force(0, -kef / (50 - robot.pos[1]) ** 2)
+    fb = Force(0, kef / robot.pos[1] ** 2)
+    return resultant_force([fl,fr,fc,fb])
+
+def attraction(robot: Robot): # the attractive force that robot get from workbench
+    if robot.state == RobotState.IDLE:
+        return Force(0,0)
+    if robot.state == RobotState.TAKING:
+        bench = robot.loadingTask.fo
+    else:
+        bench = robot.loadingTask.to
+    ag = angle(robot.pos, bench.pos)
+    d = myutil.dist(robot.pos,bench.pos)
+    mag = max(1,1/d**2)
+    return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
+
+kp_f = 7
+kd_f = 4
+kp_r = 30
+kd_r = 3
+
+def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
+    all_forces = []
+    for i in range(0,len(other)):
+        if other[i].id == robot.id:
+            continue
+        all_forces.append(repulsion(robot, other[i]))
+    all_forces.append(edge_repulsion(robot))
+    all_forces.append(attraction(robot))
+    force = resultant_force(all_forces)
+    dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
+    kdag = math.cos(dag)
+    if kdag > 0:
+        kdag = max(0, kdag - 0.2) / 0.8
+    else:
+        kdag = min(0, kdag + 0.2) / 0.8
+    cfm = force.magnitude()*kdag # magnitude of component force on the direction of robot.rot
+    return kp_f * cfm - kd_f * robot.vel, kp_r * dag - kd_r * robot.w
+
 class RobotControl:
-    kp_f = 7
-    kd_f = 1
-    kp_r = 30
-    kd_r = 3
 
-    forward_ban = [False, False, False, False]
-    last_frame = [0, 0, 0, 0]
-    avoid_type = [0, 0, 0, 0] # 0->stop, m->turn m degrees
+    flag = [0,0,0,0]
 
-    def forward(self, robot: Robot):
-        if robot.state == RobotState.IDLE:
-            return
-        if robot.state == RobotState.TAKING:
-            bench = robot.loadingTask.fo
-        else:
-            bench = robot.loadingTask.to
-        if self.forward_ban[robot.id]:
-            if self.last_frame[robot.id] == 0:
-                self.forward_ban[robot.id] = False
-                self.avoid_type[robot.id] = 0
-            else:
-                self.last_frame[robot.id] = self.last_frame[robot.id]-1
-                if self.avoid_type[robot.id] == 0:
-                    print("forward %d %f" % (robot.id, -robot.vel*self.kd_f))
-                    print("rotate %d %f" % (robot.id, -robot.w*self.kd_r))
-                else:
-                    distance = ((bench.pos[0] - robot.pos[0]) ** 2 + (
-                            bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
-                    next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
-                    print("forward %d %f" % (robot.id, next_vel))
-                    print("rotate %d %f" % (robot.id, self.avoid_type[robot.id]))
-                return
+    def __init__(self):
+        pass
 
-        ag = angle(robot.pos, bench.pos)
-        if ag - robot.rot > math.pi:
-            da = ag-robot.rot-2*math.pi
-        elif ag - robot.rot < -math.pi:
-            da = ag-robot.rot+2*math.pi
-        else:
-            da = ag - robot.rot
-        next_w = max(-math.pi, min(self.kp_r * da - self.kd_r * robot.w, math.pi))
-        print("rotate %d %f" % (robot.id, next_w))
-
-        if 0.1 > da > -0.1:
-            distance = ((bench.pos[0] - robot.pos[0]) ** 2 + (
-                    bench.pos[1] - robot.pos[1]) ** 2) ** 0.5
-            next_vel = max(-2, min(self.kp_f * distance - self.kd_f * robot.vel, 6))
-            print("forward %d %f" % (robot.id, next_vel))
-        else:
-            print("forward %d %f" % (robot.id, -robot.vel*self.kd_f))
-
+    def forward(self, robot: Robot, all_robots: [Robot]):
+        nxt = next_velocity_and_angular_velocity(robot, all_robots)
+        print("forward %d %f" % (robot.id, nxt[0]))
+        print("rotate %d %f" % (robot.id, nxt[1]))
 
     def buy(self, robot: Robot):
         print("buy %d" % robot.id)
 
     def sell(self, robot: Robot):
         print("sell %d" % robot.id)
-
-    def collision_predict(self, robots: [Robot]):
-        result = [[False, False, False, False], [False, False, False, False], [False, False, False, False],
-                  [False, False, False, False]]
-        #if len(self.forward_ban) > 0:
-        #    return result
-        for i in range(1, 26):
-            poses = []
-            for j in range(0, 4):
-                poses.append(mov_predict(robots[j], i))
-            for j in range(0, 3):
-                for k in range(j + 1, 4):
-                    dist = ((poses[j][0] - poses[k][0]) ** 2 + (poses[j][1] - poses[k][1]) ** 2) ** 0.5
-                    if dist < 0.8:
-                        result[j][k] = result[k][j] = True
-                        return result
-        return result
-
-    def collision_avoid(self, robot1: Robot, robot2: Robot):
-        if robot1.state == RobotState.IDLE:
-            return
-        if robot2.state == RobotState.IDLE:
-            return
-
-        if robot1.state != RobotState.DELIVERING and robot2.state != RobotState.DELIVERING:
-            self.forward(robot1)
-            self.forward(robot2)
-            return
-
-        if robot1.state == RobotState.TAKING:
-            bench1 = robot1.loadingTask.fo
-        else:
-            bench1 = robot1.loadingTask.to
-
-        if robot2.state == RobotState.TAKING:
-            bench2 = robot2.loadingTask.fo
-        else:
-            bench2 = robot2.loadingTask.to
-        if robot1.vel < 0.01:
-            self.forward_ban[robot2.id] = True
-            self.last_frame[robot2.id] = 25
-            ag1=angle(robot1.pos, bench1.pos)
-            da1=ag1-robot2.rot
-            if da1 > 0 or da1 < -math.pi/2:
-                self.avoid_type[robot2.id]=-math.pi/2
-            else:
-                self.avoid_type[robot2.id]=math.pi/2
-        elif robot2.vel < 0.01:
-            self.forward_ban[robot1.id] = True
-            self.last_frame[robot1.id] = 25
-            ag2=angle(robot2.pos, bench2.pos)
-            da2=ag2-robot1.rot
-            if da2 > 0 or da2 < -math.pi/2:
-                self.avoid_type[robot1.id]=-math.pi/2
-            else:
-                self.avoid_type[robot1.id]=math.pi/2
-        else:
-            da=robot1.rot-robot2.rot
-            if da > math.pi:
-                da = da-math.pi
-            if da < -math.pi:
-                da = da+math.pi
-            if da < - math.pi*5/6 or da > math.pi*5/6:
-                self.forward_ban[robot1.id]=True
-                self.last_frame[robot1.id]=25
-                self.forward_ban[robot2.id]=True
-                self.last_frame[robot2.id]=25
-                self.avoid_type[robot1.id]=math.pi/2
-                self.avoid_type[robot2.id]=math.pi/2
-            else:
-                self.forward_ban[robot1.id]=True
-                self.last_frame[robot1.id]=25
-                self.avoid_type[robot1.id]=0
-        self.forward(robot1)
-        self.forward(robot2)
 
