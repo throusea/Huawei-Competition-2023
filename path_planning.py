@@ -18,64 +18,48 @@ class PathPlanning:
         self.graph = graph
         self.robots = robots
         self.num_of_wid = [0 for _ in range(8)]
-        self.idle_queue = Queue()     # item is Edge
-        self.running_queue = Queue()  # item is (Edge, frame)
-
 
     def init_task(self):
-
         self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1), dtype=Edge)
         # init the task robot can do
         self.graph.create_edges()
-        for e in self.graph.edges:
-            self.idle_queue.put(e)
         self.graph.anaylse_wb()
-        pass
-
-    def select_one_edge(self, rob: Robot):
-        # w1: Workbench = self.graph.nearest_active_bench(rob.pos)
-        # if w1 == None:
-        #     return None
-
-        # w2: Workbench = self.graph.nearest_active_inbench(w1)
-        # if w2 == None:
-        #     return None
-        w1, w2 = self.graph.get_active_edge(rob.pos)
-        if w1 == None or w2 == None:
-            return None
-        w1.setLock(w1.ty)
-        w2.setLock(w1.ty)
-        # self.running_queue.put((e, frame))
-        return Edge(w1, w2)
+        self.graph.init_predict_tasktime()
 
     def get_robots(self):
         return self.robots
 
     def get_workbenches(self):
         return self.graph.workbenches
+
+    def select_one_edge(self, rob: Robot, near_w: Workbench=None, frame: int = 0):
+        w1, w2 = self.graph.get_active_edge(rob.pos, near_w)
+        if w1 == None or w2 == None:
+            return None
+        w1.setLock(w1.ty, frame)
+        w2.setLock(w1.ty, frame)
+        # self.running_queue.put((e, frame))
+        # raise Exception(str(w1))
+        return Edge(w1, w2)
     
     # unlock one Robot which turn from TAKING to DELIVERING
-    def unlock_first(self, rob: Robot):
+    def unlock_first(self, rob: Robot, frame: int=0):
         w1 = rob.loadingTask.fo
-        w1.setLock(w1.ty, False)
+        self.graph.update_tasktime(rob.last_w, w1, frame - w1.getLockTime(w1.ty))
+        w1.setLock(w1.ty, val = False)
 
     # unlock one Robot which turn from DELIVERING to IDLE
-    def unlock(self, rob: Robot, frame: int):
+    def unlock(self, rob: Robot, frame: int=0):
         w1 = rob.loadingTask.fo
         w2 = rob.loadingTask.to
-        w1.setLock(w1.ty, False)
-        w2.setLock(w1.ty, False)
+        self.graph.update_tasktime(w1, w2, frame - w2.getLockTime(w1.ty))
+        w2.setLock(w1.ty, val = False)
 
-    def update_idle_queue(self, frame: int):
-        # while self.running_queue.empty() is False:
-            # self.idle_queue.put(self.running_queue.get())
-        pass
-
-    def allocate_rob(self):
+    def allocate_rob(self, frame: int):
         cmd_list = []
         for b in self.robots:
             if b.state == RobotState.IDLE:
-                e = self.select_one_edge(b)
+                e = self.select_one_edge(b, None, frame)
                 b.set_task(e)
     
     def get_all_tasktype_fm_rob(self):
