@@ -1,6 +1,7 @@
 from workbench import Workbench, NEXT_WORKBENCH
 from item import ITEM_INPUT, ITEM_BUY, ITEM_SELL
 from edge import Edge
+from robot import Robot
 import numpy as np
 import math
 import myutil
@@ -50,7 +51,7 @@ class Graph():
         self.q[w1.id][w2.id] += self.learn_rate * (f - self.q[w1.id][w2.id])
     
     def is_active_outbench(self, w: Workbench, t: float):
-        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t >= w.status and w.status != -1))
+        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t+100 >= w.status and w.status != -1))
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
         return (myutil.is_in_set(w2.ty, self.disable_bench) == False) and (myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty])) and (myutil.is_in_set(w1.ty, w2.inputs)) == False
@@ -84,8 +85,20 @@ class Graph():
     
     def get_profit(self, item_id: int):
         return ITEM_SELL[item_id] - ITEM_BUY[item_id]
+    
+    def any_more_great_robot(self, r_pos: (float, float), w: Workbench, robots: [Robot]):
+        for r in robots:
+            if r.loadingTask != None:
+                task = r.loadingTask
+                if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
+                    return True
+            else:
+                if myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
+                    return True
+                
+        return False
 
-    def get_active_edge(self, r_pos, near_w: Workbench=None):
+    def get_active_edge(self, r_pos, near_w: Workbench=None, robots: [Robot]=None):
         ans_w = (None, None)
         # dist = (114514, 1919810)
         t = (114514, 1919810) 
@@ -102,7 +115,8 @@ class Graph():
                 t2 = self.get_predict_tasktime(w1, w2)
                 if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
                    self.get_profit(w1.ty) / (t1 + t2) > profit / (t[0] + t[1]) and\
-                   self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False:
+                   self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False and\
+                   self.any_more_great_robot(r_pos, w1, robots) == False:
                     # dist = dist_tmp
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty)
