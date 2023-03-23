@@ -42,6 +42,7 @@ class MyListenser:
 
             if rob.itemId != 0:
                 rob.state = RobotState.DELIVERING
+                rob.last_w = edge.fo
                 self.plan.unlock_first(rob, int(self.frame))
                 return edge.to.id
         else:
@@ -50,6 +51,7 @@ class MyListenser:
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
+                rob.last_w = edge.to
                 self.plan.unlock(rob, int(self.frame))
                 rob.loadingTask = None
                 return 0
