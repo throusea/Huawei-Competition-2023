@@ -62,13 +62,34 @@ class Graph():
 
     def bonus(self, w: Workbench):
         no = w.num_in_inputset()
+        if self.num_of_wid[7] > 0:
+            if w.ty == 9:
+                return 0.01
+            elif no == 0:
+                return 1
+            elif no == 1:
+                return 1.2
         if no == 0:
             return 1
         elif no == 1:
-            return 1.2
+            return 2
         elif no == 2:
-            return 1.5
+            return 3
         return 2
+    
+    def indep(self, w: Workbench):
+        o = 0
+        if self.num_of_wid[7] == 0:
+            return 1
+        for wbs in self.workbenches:
+            if  (wbs.status != -1 or wbs.output == 1) and wbs.ty == w.ty:
+                o += 1
+            if myutil.is_in_set(w.ty, wbs.inputs):
+                o += 1
+        if o == 0:
+            return 20
+        else:
+            return 1
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None
@@ -95,7 +116,7 @@ class Graph():
         return near_w
     
     def get_profit(self, item_id: int, in_w: Workbench):
-        return (ITEM_SELL[item_id] - ITEM_BUY[item_id]) * self.bonus(in_w)
+        return (ITEM_SELL[item_id] - ITEM_BUY[item_id]) * self.bonus(in_w) * self.indep(in_w)
     
     def any_more_great_robot(self, r_pos: (float, float), w: Workbench, robots: [Robot]):
         for r in robots:
