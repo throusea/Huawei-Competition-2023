@@ -1,4 +1,4 @@
-from item import Item
+from item import Item, ITEM_INPUT
 from enum import Enum
 import myutil
 
@@ -49,6 +49,15 @@ class Workbench:
         if self.locktime_dict[item_id] == -1:
             raise Exception(item_id)
         return self.locktime_dict[item_id]
+
+    def num_in_inputset(self):
+        inputs = ITEM_INPUT[self.ty]
+        s = self.inputs & inputs
+        no = 0
+        for i in range(s.bit_length()):
+            if (s & (1<<i)) != 0:
+                no += 1
+        return no
 
     def __str__(self):
         return ("id:%s, ty:%s, pos:(%s, %s), lockset: %d, status:%d, inputs: %s, output:%s"%(self.id, self.ty, self.pos[0], self.pos[1], self.lockset, self.status, self.inputs, self.output))

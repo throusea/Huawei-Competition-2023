@@ -32,8 +32,8 @@ class PathPlanning:
     def get_workbenches(self):
         return self.graph.workbenches
 
-    def select_one_edge(self, rob: Robot, near_w: Workbench=None, frame: int = 0):
-        w1, w2 = self.graph.get_active_edge(rob.pos, near_w, self.robots, frame)
+    def select_one_edge(self, rob: Robot, frame: int = 0):
+        w1, w2 = self.graph.get_active_edge(rob.pos, rob.last_w, self.robots, frame)
         if w1 == None or w2 == None:
             return None
         w1.setLock(w1.ty, frame)
@@ -45,7 +45,8 @@ class PathPlanning:
     # unlock one Robot which turn from TAKING to DELIVERING
     def unlock_first(self, rob: Robot, frame: int=0):
         w1 = rob.loadingTask.fo
-        self.graph.update_tasktime(rob.last_w, w1, frame - w1.getLockTime(w1.ty))
+        if rob.last_w != None:
+            self.graph.update_tasktime(rob.last_w, w1, frame - w1.getLockTime(w1.ty))
         w1.setLock(w1.ty, val = False)
 
     # unlock one Robot which turn from DELIVERING to IDLE
@@ -59,7 +60,7 @@ class PathPlanning:
         cmd_list = []
         for b in self.robots:
             if b.state == RobotState.IDLE:
-                e = self.select_one_edge(b, None, frame)
+                e = self.select_one_edge(b, frame)
                 b.set_task(e)
     
     def get_all_tasktype_fm_rob(self):

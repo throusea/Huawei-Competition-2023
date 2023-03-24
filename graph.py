@@ -49,17 +49,26 @@ class Graph():
         return myutil.dist(r_pos, w2.pos) / 5 * 50 * 1.1
     
     def update_tasktime(self, w1: Workbench, w2: Workbench, f: float):
-        return 
         self.q[w1.id][w2.id] += self.learn_rate * (f - self.q[w1.id][w2.id])
     
     def is_active_outbench(self, w: Workbench, t: float):
-        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t+100 >= w.status and w.status != -1))
+        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t+150 >= w.status and w.status != -1))
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
         return (myutil.is_in_set(w2.ty, self.disable_bench) == False) and (myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty])) and (myutil.is_in_set(w1.ty, w2.inputs)) == False
     
     def is_benchlocked(self, w: Workbench, item_id: int):
         return w.isLock(item_id)
+
+    def bonus(self, w: Workbench):
+        no = w.num_in_inputset()
+        if no == 0:
+            return 1
+        elif no == 1:
+            return 1.2
+        elif no == 2:
+            return 1.5
+        return 2
 
     def nearest_active_bench(self, pos: (float, float)):
         near_w = None
@@ -85,8 +94,8 @@ class Graph():
                 near_w = w2
         return near_w
     
-    def get_profit(self, item_id: int):
-        return ITEM_SELL[item_id] - ITEM_BUY[item_id]
+    def get_profit(self, item_id: int, in_w: Workbench):
+        return (ITEM_SELL[item_id] - ITEM_BUY[item_id]) * self.bonus(in_w)
     
     def any_more_great_robot(self, r_pos: (float, float), w: Workbench, robots: [Robot]):
         for r in robots:
@@ -116,12 +125,12 @@ class Graph():
                 t1 = self.get_predict_tasktime(near_w, w1) if near_w != None else self.get_predict_tasktime_on_pos(r_pos, w1)
                 t2 = self.get_predict_tasktime(w1, w2)
                 if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
-                   self.get_profit(w1.ty) / (t1 + t2) > profit / (t[0] + t[1]) and\
+                   self.get_profit(w1.ty, w2) / (t1 + t2) > profit / (t[0] + t[1]) and\
                    self.is_benchlocked(w1, w1.ty) == False and self.is_benchlocked(w2, w1.ty) == False and\
                    self.any_more_great_robot(r_pos, w1, robots) == False and t1+t2 <= TOTAL_FRAME - frame:
                     # dist = dist_tmp
                     t = (t1, t2)
-                    profit = self.get_profit(w1.ty)
+                    profit = self.get_profit(w1.ty, w2)
                     ans_w = (w1, w2)
         # if ans_w[0] != None and ans_w[1] != None:
         #     raise Exception(str(ans_w[0]))
