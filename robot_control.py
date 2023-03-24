@@ -50,9 +50,9 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
     return result
 
 krf = 19.5
-kef = 15
+kef = 5
 kb = 10
-
+kbd = 2
 
 
 def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
@@ -86,13 +86,28 @@ def attraction(robot: Robot): # the attractive force that robot get from workben
         bench = robot.loadingTask.to
     ag = angle(robot.pos, bench.pos)
     d = myutil.dist(robot.pos,bench.pos)
-    mag = max(1,1/d**2)
+    mag = 1
     return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
 
-kp_f = 7
-kd_f = 4
-kp_r = 30
-kd_r = 3
+def bench_drag(robot:Robot):
+    if robot.state == RobotState.IDLE:
+        return Force(0,0)
+    if robot.state == RobotState.TAKING:
+        bench = robot.loadingTask.fo
+    else:
+        bench = robot.loadingTask.to
+    ag = angle(robot.pos, bench.pos)
+    d = myutil.dist(robot.pos,bench.pos)
+    dag = diff_angle(robot.rot,ag)
+    kdag = math.sin(dag)**2
+    mag = (1/d) * kbd * robot.vel
+    return Force(mag * math.cos(robot.rot+math.pi),mag * math.sin(robot.rot+math.pi))
+
+
+kp_f = 10
+kd_f = 1
+kp_r = 50
+kd_r = 5
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces = []
@@ -102,19 +117,18 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
         all_forces.append(repulsion(robot, other[i]))
     all_forces.append(edge_repulsion(robot))
     all_forces.append(attraction(robot))
+    all_forces.append(bench_drag(robot))
     force = resultant_force(all_forces)
     dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
     kdag = math.cos(dag)
-    if kdag > 0:
-        kdag = max(0, kdag - 0.2) / 0.8
-    else:
-        kdag = min(0, kdag + 0.2) / 0.8
+    #if kdag > 0:
+    #    kdag = max(0, kdag - 0.2) / 0.8
+    #else:
+    #    kdag = min(0, kdag + 0.2) / 0.8
     cfm = force.magnitude()*kdag # magnitude of component force on the direction of robot.rot
     return kp_f * cfm - kd_f * robot.vel, kp_r * dag - kd_r * robot.w
 
 class RobotControl:
-
-    flag = [0,0,0,0]
 
     def __init__(self):
         pass
