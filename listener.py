@@ -30,9 +30,6 @@ class MyListenser:
         if rob.state == RobotState.IDLE:
             if edge == None:
                 return 0
-            if edge.fo.output == 1:
-                rob.state = RobotState.TAKING
-                return edge.fo.id
             else:
                 rob.state = RobotState.TAKING
                 return edge.fo.id
