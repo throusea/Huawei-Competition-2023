@@ -17,6 +17,7 @@ class Robot():
         self.state = state
         self.itemId = loadingItem
         self.loadingTask = None
+        self.last_w = None
 
     def __str__(self):
         return ("id:%s, pos:(%s, %s), vel:%s, rot:%s, w:%s, state:%s, loadingItem:%s, loadingTask:%s"%(self.id, self.pos[0], self.pos[1], self.vel, self.rot, self.w, self.state, self.itemId, self.loadingTask))

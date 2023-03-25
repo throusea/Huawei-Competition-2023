@@ -28,16 +28,35 @@ graph = Graph(wbs)
 graph.create_edges()
 
 pln = PathPlanning(graph, robs)
+pln.init_task()
 
-wbs[0].output = 1
-wbs[1].output = 1
-wbs[2].output = 1
-pln.allocate_rob()
+wbs[6].output = 1
+wbs[0].status = 10
+wbs[1].status = 10
+wbs[2].status = 10
+wbs[3].inputs = 0b010
+pln.allocate_rob(0)
 
-for e in graph.edges:
-    print(e.__str__())
-print(pln.get_all_tasktype_fm_rob())
+for r in robs:
+    if r.loadingTask != None:
+        print(r.loadingTask.fo.ty, r.loadingTask.to.ty)
 
-print(graph.is_active_inbench(wbs[0], wbs[3]))
+# print(pln.select_one_edge(robs[0]))
+print(graph.num_of_wid[7])
+graph.num_of_wid[7] = 0
+print(graph.get_profit(5, wbs[8]))
+# for w1 in graph.workbenches:
+#     for w2 in graph.workbenches:
+#         print((int)(graph.get_predict_tasktime(w1, w2)), end=" ")
+#     print()
 
-print(graph.is_benchlocked(wbs[0], 1))
+# print(wbs[0].getLockTime(wbs[0].ty))
+# for e in graph.edges:
+    # print(e.__str__())
+# print(pln.get_all_tasktype_fm_rob())
+
+# print(graph.get_active_edge((0, 0)))
+
+# print(graph.is_benchlocked(wbs[0], 1))
+
+print(graph.bonus(wbs[3]))
