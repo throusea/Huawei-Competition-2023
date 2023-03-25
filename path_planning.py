@@ -58,7 +58,6 @@ class PathPlanning:
         self.graph.update_tasktime(w1, w2, frame - w2.getLockTime(w1.ty))
         w2.setLock(w1.ty, val = False)
     
-    
     def unlock_all(self, rob: Robot, frame: int=0):
         if rob.loadingTask == None:
             raise Exception('The task of robot is None!')
@@ -74,7 +73,7 @@ class PathPlanning:
                 b.append(True)
             else:
                 b.append(False)
-        return robs
+        return b
 
     def allocate_rob(self, frame: int):
         cmd_list = []
