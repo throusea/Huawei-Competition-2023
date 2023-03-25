@@ -14,6 +14,16 @@ class Force:
 
     def magnitude(self):
         return myutil.dist((0,0),(self.x,self.y))
+    def multiple(self, c:float):
+        return Force(self.x*c,self.y*c)
+
+def target(robot:Robot):
+    if robot.state == RobotState.IDLE:
+        return None
+    if robot.state == RobotState.TAKING:
+        return robot.loadingTask.fo
+    else:
+        return robot.loadingTask.to
 
 def mov_predict(robot: Robot, last: int):
     dx = robot.vel * math.cos(robot.rot) * 0.02 * last
@@ -49,7 +59,7 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 19.5
+krf = 40
 kef = 5
 kb = 10
 kbd = 2
@@ -59,13 +69,15 @@ def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 g
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
     abs_da = max(da, -da)
-    kdag = abs_da / math.pi * 0.7 + 0.3
+    kdag = abs_da / math.pi * 0.8 + 0.2
+    #kdag=1
     mag = max(1, krf / r ** 2) * kdag
     ag = angle(robot2.pos, robot1.pos)
-    #if diff_angle(robot1.rot, ag) > 0:
-    #    ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
-    #else:
-    #    ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    if abs_da > (math.pi*165/180):
+        if diff_angle(robot1.rot, ag) > 0:
+            ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+        else:
+            ag = float(ag + (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
     fx = mag*math.cos(ag)
     fy = mag*math.sin(ag)
     return Force(fx,fy)
@@ -78,24 +90,18 @@ def edge_repulsion(robot: Robot): # the repulsive force that robot get from all 
     return resultant_force([fl,fr,fc,fb])
 
 def attraction(robot: Robot): # the attractive force that robot get from workbench
-    if robot.state == RobotState.IDLE:
+    bench=target(robot)
+    if bench is None:
         return Force(0,0)
-    if robot.state == RobotState.TAKING:
-        bench = robot.loadingTask.fo
-    else:
-        bench = robot.loadingTask.to
     ag = angle(robot.pos, bench.pos)
     d = myutil.dist(robot.pos,bench.pos)
     mag=1
     return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
 
 def bench_drag(robot:Robot):
-    if robot.state == RobotState.IDLE:
+    bench=target(robot)
+    if bench is None:
         return Force(0,0)
-    if robot.state == RobotState.TAKING:
-        bench = robot.loadingTask.fo
-    else:
-        bench = robot.loadingTask.to
     ag = angle(robot.pos, bench.pos)
     d = myutil.dist(robot.pos,bench.pos)
     dag = diff_angle(robot.rot,ag)
@@ -111,12 +117,25 @@ kd_r = 5
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces = []
+    benches_nearer = False
+    tar_bench=target(robot)
+    if tar_bench is not None:
+        tar_dist=myutil.dist(robot.pos,tar_bench.pos)
     for i in range(0,len(other)):
         if other[i].id == robot.id:
             continue
+        other_tar=target(other[i])
+        if (tar_bench is not None) and (other_tar is not None):
+            if other_tar.id == tar_bench.id:
+                benches_nearer |= (myutil.dist(other[i].pos,other_tar.pos)<tar_dist)
         all_forces.append(repulsion(robot, other[i]))
+    if tar_bench is not None:
+        benches_nearer &= (tar_dist<2)
     all_forces.append(edge_repulsion(robot))
-    all_forces.append(attraction(robot))
+    if benches_nearer:
+        all_forces.append(attraction(robot).multiple(0.1))
+    else:
+        all_forces.append(attraction(robot))
     all_forces.append(bench_drag(robot))
     force = resultant_force(all_forces)
     dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
