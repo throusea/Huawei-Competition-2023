@@ -72,16 +72,16 @@ class Graph():
         if self.num_of_wid[w.ty] >= 6:
             for r in robots:
                 if r.loadingTask != None and r.loadingTask.to.id == w.id:
-                    b *= 2
+                    b *= 1.5
         if self.num_of_wid[7] > 0:
             if w.ty == 9:
                 return 0.01
             elif no == 0:
                 return 1 * b
             elif no == 1:
-                return 1.4 * b
+                return 1.5 * b
             elif no == 2:
-                return 2 * b
+                return 1.8 * b
         else:
             if no == 0:
                 return 1
@@ -101,9 +101,9 @@ class Graph():
         for r in robots:
             if r.itemId == w.ty:
                 o += 1
-        if w.ty > 3:
+        if w.ty > 3 and w.ty < 7:
             if o - self.num_of_wid[7] > 0:
-                return 0.5 ** (o-self.num_of_wid[7])
+                return 0.1 ** (o-self.num_of_wid[7])
             elif o > 1 and self.num_of_wid[7] >= 4:
                 return 0.4
             else:
