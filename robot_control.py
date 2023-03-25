@@ -112,8 +112,8 @@ def bench_drag(robot:Robot):
 
 kp_f = 10
 kd_f = 0
-kp_r = 50
-kd_r = 0
+kp_r = 30
+kd_r = 3
 prio_state = RobotState.DELIVERING
 thresh_dist = 2.2
 

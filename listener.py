@@ -14,7 +14,7 @@ class MyListenser:
         self.rob: [Robot] = self.plan.get_robots()
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
-        # self.date = open("date.txt", "w")
+        self.date = open("date.txt", "w")
         self.frame = 0
 
     def check_dis(self, rob: Robot, bench: Workbench):
@@ -114,20 +114,19 @@ class MyListenser:
             if not occ[i]:
                 rc.forward(self.rob[i], self.rob)
 
-        # self.date.write(str("Frame:%s\n"%(self.frame)))
-        # self.date.write(str(self.near)+"\n")
-        # for i in range(0, 4):
-            # self.date.write(str(self.rob[i]) + "\n")
+        self.date.write(str("Frame:%s\n"%(self.frame)))
+        self.date.write(str(self.near)+"\n")
+        for i in range(0, 4):
+            self.date.write(str(self.rob[i]) + "\n")
 
-        # for i in range(0, len(self.bench)):
-        #     self.date.write(str(self.bench[i]) + "\n")
-        # self.date.write(str(self.plan.graph.q))
-        # self.date.write("\n")
+        for i in range(0, len(self.bench)):
+            self.date.write(str(self.bench[i]) + "\n")
+        self.date.write(str(self.plan.graph.q))
+        self.date.write("\n")
 
 
-        # self.plan.update_idle_queue(self.frame)
         self.plan.allocate_rob(int(self.frame))
-        #self.date.flush()
+        self.date.flush()
 
         return True
 
