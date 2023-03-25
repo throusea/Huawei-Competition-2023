@@ -59,13 +59,43 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 57.5
+krf = 80
 kef = 5
-kb = 10
+kb = 12
 kbd = 2
 
+def predict_col(r1: Robot, r2: Robot):
+    if r1.itemId == 7 or r2.itemId == 7:
+        return True
+    rx1 = r1.pos[0]
+    ry1 = r1.pos[1]
+    rx2 = r2.pos[0]
+    ry2 = r2.pos[1]
+    rot1 = r1.rot
+    rot2 = r2.rot
+    for i in range (0, 50):
+        rx1 += math.cos(rot1)*r1.vel
+        ry1 += math.sin(rot1) * r1.vel
+        rx2 += math.cos(rot2) * r2.vel
+        ry2 += math.sin(rot2) * r2.vel
+        rot1 += r1.w
+        rot2 += r2.w
+        if myutil.dist((rx1, ry1), (rx2, ry2)) < 5:
+            return True
+    return False
 
-def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 get from robot2
+def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force that robot1 get from robot2
+    kt = 1
+    if not predict_col(robot1, robot2):
+       kt = 0.15
+    if int(frame) > 8700:
+        if(robot1.itemId == 7):
+            kt = 0
+        elif(robot2.itemId == 7):
+            kt = 1
+        else:
+            kt = 0.1
+
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
     abs_da = max(da, -da)
@@ -80,7 +110,7 @@ def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 g
             ag = float(ag + (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
     fx = mag*math.cos(ag)
     fy = mag*math.sin(ag)
-    return Force(fx,fy)
+    return Force(fx*kt,fy*kt)
 
 def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
     fl = Force(kef / robot.pos[0] ** 2, 0)
@@ -110,14 +140,14 @@ def bench_drag(robot:Robot):
     return Force(mag * math.cos(robot.rot+math.pi),mag * math.sin(robot.rot+math.pi))
 
 
-kp_f = 10
+kp_f = 25
 kd_f = 0
-kp_r = 30
+kp_r = 15
 kd_r = 3
 prio_state = RobotState.DELIVERING
 thresh_dist = 2.2
 
-def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
+def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
     all_forces = []
     benches_nearer = False
     tar_bench=target(robot)
@@ -135,7 +165,7 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
                 if other[i].state != prio_state:
                     other_dist += thresh_dist
                 benches_nearer |= (other_dist<tar_dist)
-        all_forces.append(repulsion(robot, other[i]))
+        all_forces.append(repulsion(robot, other[i], frame))
     if tar_bench is not None:
         if robot.state != prio_state:
             tar_dist -= thresh_dist
@@ -148,7 +178,8 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces.append(bench_drag(robot))
     force = resultant_force(all_forces)
     dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
-    kdag = math.cos(dag)
+    kdag = math.pi/2-abs(dag)
+    kdag *= abs(kdag)
     #if kdag > 0:
     #    kdag = max(0, kdag - 0.2) / 0.8
     #else:
@@ -159,10 +190,12 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
 class RobotControl:
 
     def __init__(self):
+        self.frame = 0
         pass
-
+    def update_frame(self, frame:int):
+        self.frame = frame
     def forward(self, robot: Robot, all_robots: [Robot]):
-        nxt = next_velocity_and_angular_velocity(robot, all_robots)
+        nxt = next_velocity_and_angular_velocity(robot, all_robots, self.frame)
         print("forward %d %f" % (robot.id, nxt[0]))
         print("rotate %d %f" % (robot.id, nxt[1]))
 
