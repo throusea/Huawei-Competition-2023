@@ -59,7 +59,7 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 40
+krf = 60
 kef = 5
 kb = 10
 kbd = 2
@@ -111,9 +111,11 @@ def bench_drag(robot:Robot):
 
 
 kp_f = 10
-kd_f = 1
+kd_f = 0
 kp_r = 50
-kd_r = 5
+kd_r = 0
+prio_state = RobotState.DELIVERING
+thresh_dist = 2.2
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     all_forces = []
@@ -121,16 +123,23 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot):
     tar_bench=target(robot)
     if tar_bench is not None:
         tar_dist=myutil.dist(robot.pos,tar_bench.pos)
+        if robot.state != prio_state:
+            tar_dist += thresh_dist
     for i in range(0,len(other)):
         if other[i].id == robot.id:
             continue
         other_tar=target(other[i])
         if (tar_bench is not None) and (other_tar is not None):
             if other_tar.id == tar_bench.id:
-                benches_nearer |= (myutil.dist(other[i].pos,other_tar.pos)<tar_dist)
+                other_dist = myutil.dist(other[i].pos,other_tar.pos)
+                if other[i].state != prio_state:
+                    other_dist += thresh_dist
+                benches_nearer |= (other_dist<tar_dist)
         all_forces.append(repulsion(robot, other[i]))
     if tar_bench is not None:
-        benches_nearer &= (tar_dist<2)
+        if robot.state != prio_state:
+            tar_dist -= thresh_dist
+        benches_nearer &= (tar_dist < thresh_dist)
     all_forces.append(edge_repulsion(robot))
     if benches_nearer:
         all_forces.append(attraction(robot).multiple(0.1))
