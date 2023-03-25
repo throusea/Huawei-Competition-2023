@@ -65,16 +65,16 @@ class PathPlanning:
         w1 = rob.loadingTask.fo
         w2 = rob.loadingTask.to
         w1.setLock(w1.ty, val = False)
-        w2.setLock(w2.ty, val = False)
+        w2.setLock(w1.ty, val = False)
 
     def any_more_great_robot(self):
         b = []
         for r in self.robots:
-            if r.state == RobotState.TAKING and self.graph.any_more_great_robot(r.pos, r.loadingTask.fo, robots):
+            if r.state == RobotState.TAKING and self.graph.any_more_great_robot(r.pos, r.loadingTask.fo, self.robots):
                 b.append(True)
             else:
                 b.append(False)
-        return robs
+        return b
 
     def allocate_rob(self, frame: int):
         cmd_list = []
