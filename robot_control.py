@@ -49,7 +49,8 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 19.5
+
+krf = 30
 kef = 5
 kb = 10
 kbd = 2
@@ -62,10 +63,10 @@ def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 g
     kdag = abs_da / math.pi * 0.7 + 0.3
     mag = max(1, krf / r ** 2) * kdag
     ag = angle(robot2.pos, robot1.pos)
-    #if diff_angle(robot1.rot, ag) > 0:
-    #    ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
-    #else:
-    #    ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    if diff_angle(robot1.rot, ag) > 0:
+        ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    else:
+        ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
     fx = mag*math.cos(ag)
     fy = mag*math.sin(ag)
     return Force(fx,fy)
@@ -143,4 +144,3 @@ class RobotControl:
 
     def sell(self, robot: Robot):
         print("sell %d" % robot.id)
-
