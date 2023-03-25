@@ -51,10 +51,30 @@ class PathPlanning:
 
     # unlock one Robot which turn from DELIVERING to IDLE
     def unlock(self, rob: Robot, frame: int=0):
+        if rob.loadingTask == None:
+            raise Exception('The task of robot is None!')
         w1 = rob.loadingTask.fo
         w2 = rob.loadingTask.to
         self.graph.update_tasktime(w1, w2, frame - w2.getLockTime(w1.ty))
         w2.setLock(w1.ty, val = False)
+    
+    
+    def unlock_all(self, rob: Robot, frame: int=0):
+        if rob.loadingTask == None:
+            raise Exception('The task of robot is None!')
+        w1 = rob.loadingTask.fo
+        w2 = rob.loadingTask.to
+        w1.setLock(w1.ty, val = False)
+        w2.setLock(w2.ty, val = False)
+
+    def any_more_great_robot(self):
+        b = []
+        for r in self.robots:
+            if r.state == RobotState.TAKING and self.graph.any_more_great_robot(r.pos, r.loadingTask.fo, robots):
+                b.append(True)
+            else:
+                b.append(False)
+        return robs
 
     def allocate_rob(self, frame: int):
         cmd_list = []
