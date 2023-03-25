@@ -59,7 +59,7 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 60
+krf = 57.5
 kef = 5
 kb = 10
 kbd = 2

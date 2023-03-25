@@ -14,7 +14,7 @@ class MyListenser:
         self.rob: [Robot] = self.plan.get_robots()
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
-        self.date = open("date.txt", "w")
+        # self.date = open("date.txt", "w")
         self.frame = 0
 
     def check_dis(self, rob: Robot, bench: Workbench):
@@ -34,7 +34,7 @@ class MyListenser:
                 rob.state = RobotState.TAKING
                 return edge.fo.id
         elif rob.state == RobotState.TAKING:
-            if q:
+            if q and rob.itemId == 0:
                 self.plan.unlock_all(rob, self.frame)
                 rob.state = RobotState.IDLE
                 rob.loadingTask = None
@@ -104,6 +104,7 @@ class MyListenser:
         self.collect()
         print(self.frame)
         target = [0]
+        self.plan.change_robot_tobech()
         li = self.plan.any_more_great_robot()
         for i in range(0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i], li[i]))
@@ -114,19 +115,19 @@ class MyListenser:
             if not occ[i]:
                 rc.forward(self.rob[i], self.rob)
 
-        self.date.write(str("Frame:%s\n"%(self.frame)))
-        self.date.write(str(self.near)+"\n")
-        for i in range(0, 4):
-            self.date.write(str(self.rob[i]) + "\n")
+        # self.date.write(str("Frame:%s\n"%(self.frame)))
+        # self.date.write(str(self.near)+"\n")
+        # for i in range(0, 4):
+        #     self.date.write(str(self.rob[i]) + "\n")
 
-        for i in range(0, len(self.bench)):
-            self.date.write(str(self.bench[i]) + "\n")
-        self.date.write(str(self.plan.graph.q))
-        self.date.write("\n")
+        # for i in range(0, len(self.bench)):
+        #     self.date.write(str(self.bench[i]) + "\n")
+        # self.date.write(str(self.plan.graph.q))
+        # self.date.write("\n")
 
 
         self.plan.allocate_rob(int(self.frame))
-        self.date.flush()
+        # self.date.flush()
 
         return True
 

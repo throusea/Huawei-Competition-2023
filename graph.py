@@ -108,7 +108,7 @@ class Graph():
                 o += 0.3 if w.ty == 7 else 0.5
         if w.ty > 3 and w.ty < 7:
             if o - self.num_of_wid[7] > 0:
-                return 0.5 / (o-self.num_of_wid[7])
+                return 0.25 / (o-self.num_of_wid[7])
             elif o > 1 and self.num_of_wid[7] >= 4:
                 return 0.1 / o
             else:
@@ -137,7 +137,7 @@ class Graph():
         for r in robots:
             if r.loadingTask != None:
                 task = r.loadingTask
-                if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
+                if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos) + 5:
                     return True
             else:
                 if r.state == -1 and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):

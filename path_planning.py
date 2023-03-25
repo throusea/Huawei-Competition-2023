@@ -5,6 +5,7 @@ from workbench import Workbench, NEXT_WORKBENCH
 from queue import Queue
 import time
 import numpy as np
+import myutil
 from copy import copy
 
 # class Task:
@@ -74,6 +75,19 @@ class PathPlanning:
             else:
                 b.append(False)
         return b
+    
+    def change_robot_tobech(self):
+        for r1 in self.robots:
+            for r2 in self.robots:
+                if r1.id == r2.id:
+                    continue
+                if r1.itemId == r2.itemId and r1.itemId != 0 and r2.itemId != 0 and r1.loadingTask != None and r2.loadingTask != None and\
+                   r1.state == RobotState.DELIVERING and r2.state == RobotState.DELIVERING and\
+                   myutil.dist(r1.pos, r1.loadingTask.to.pos) + myutil.dist(r2.pos, r2.loadingTask.to.pos) >\
+                   myutil.dist(r1.pos, r2.loadingTask.to.pos) + myutil.dist(r2.pos, r1.loadingTask.to.pos) + 5:
+                   t = r1.loadingTask.to
+                   r1.loadingTask.to = r2.loadingTask.to
+                   r2.loadingTask.to = t
 
     def allocate_rob(self, frame: int):
         cmd_list = []
