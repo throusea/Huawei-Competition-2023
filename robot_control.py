@@ -59,9 +59,10 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 80
+
+krf = 55
 kef = 5
-kb = 12
+kb = 11
 kbd = 2
 
 def predict_col(r1: Robot, r2: Robot):
@@ -87,14 +88,14 @@ def predict_col(r1: Robot, r2: Robot):
 def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force that robot1 get from robot2
     kt = 1
     if not predict_col(robot1, robot2):
-       kt = 0.15
+       kt = 0.4
     if int(frame) > 8700:
         if(robot1.itemId == 7):
             kt = 0
         elif(robot2.itemId == 7):
             kt = 1
         else:
-            kt = 0.1
+            kt = 0.05
 
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
@@ -140,10 +141,10 @@ def bench_drag(robot:Robot):
     return Force(mag * math.cos(robot.rot+math.pi),mag * math.sin(robot.rot+math.pi))
 
 
-kp_f = 25
+kp_f = 15
 kd_f = 0
-kp_r = 15
-kd_r = 3
+kp_r = 25
+kd_r = 2
 prio_state = RobotState.DELIVERING
 thresh_dist = 2.2
 
