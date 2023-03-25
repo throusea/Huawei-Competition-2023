@@ -135,7 +135,7 @@ class Graph():
                 if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
                     return True
             else:
-                if myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
+                if r.state == -1 and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
                     return True
         return False
 
