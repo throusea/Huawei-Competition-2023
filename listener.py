@@ -103,6 +103,7 @@ class MyListenser:
             return False
         self.collect()
         print(self.frame)
+        rc.update_frame(self.frame)
         target = [0]
         self.plan.change_robot_tobech()
         li = self.plan.any_more_great_robot()
