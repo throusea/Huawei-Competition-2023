@@ -18,6 +18,7 @@ class Graph():
         self.disable_bench = 0
         self.q = np.zeros((50, 50), dtype=float)
         self.learn_rate = 0.1
+        self.p_list = [0, 0, 0]
     
     def create_edges(self):
         for i, w1 in enumerate(self.workbenches):
@@ -66,32 +67,72 @@ class Graph():
             return False
         return out_w.getLockTime(out_w.ty) + 55 <= frame
 
-    def bonus(self, w: Workbench, robots: [Robot]):
+    def bonus(self, w: Workbench, robots: [Robot], frame: int):
         no = w.num_in_inputset()
         b = 1
+        k = frame / 9000
         if self.num_of_wid[w.ty] >= 4:
             for r in robots:
                 if r.loadingTask != None and r.loadingTask.to.id == w.id:
-                    b *= 2
+                    b *= (1.5+k)
         if self.num_of_wid[7] > 0:
             if w.ty == 9:
                 return 0.01
             elif no == 0:
                 return 1 * b
             elif no == 1:
-                return 1.5 * b
+                return 1.2 * b
             elif no == 2:
-                return 1.8 * b
+                return 1.5 * b
         else:
             if no == 0:
                 return 1
             elif no == 1:
-                return 1.5
+                return 1.1
         return 1
+
+    def p_in_bench(self, robots: [Robot]):
+        p_list = [0, 0, 0]
+        t_list = [4, 5, 6]
+        for i, t in enumerate(t_list):
+            o = 0
+            for w in self.workbenches:
+                if w.ty == t:
+                    if (w.status != -1 or w.output == 1):
+                        o += 1
+                    if w.num_in_inputset() > 0:
+                        o += 0.5 * w.num_in_inputset()
+                if myutil.is_in_set(t, w.inputs):
+                    o += 1
+            for r in robots:
+                if r.itemId == t:
+                    o += 1
+                elif r.loadingTask != None and r.loadingTask.to.ty == t:
+                    o += 0.5
+            p_list[i] = o ** 2
+        s = p_list[0] + p_list[1] + p_list[2]
+        if s != 0:
+            p_list[0] /= s
+            p_list[1] /= s
+            p_list[2] /= s
+        for i in range(3):
+            if p_list[i] == 0:
+                p_list[i] = 114514
+            else:
+                p_list[i] = 1/p_list[i]
+        s = p_list[0] + p_list[1] + p_list[2]
+        p_list[0] /= s
+        p_list[1] /= s
+        p_list[2] /= s 
+        self.p_list = p_list
     
     def indep(self, w: Workbench, robots: [Robot], frame: int):
         o = 0
         if self.num_of_wid[7] == 0 or frame > 8000:
+            return 1
+        if w.ty > 3 and w.ty < 7:
+            return self.p_list[w.ty-4]
+        else:
             return 1
         for wbs in self.workbenches:
             if wbs.ty == w.ty:
@@ -104,13 +145,13 @@ class Graph():
         for r in robots:
             if r.itemId == w.ty:
                 o += 1
-            elif myutil.is_in_set(w.ty, NEXT_WORKBENCH[r.itemId]):
-                o += 0.3 if w.ty == 7 else 0.5
+            elif r.loadingTask != None and r.loadingTask.to.ty == w.ty:
+                o += 0.5
         if w.ty > 3 and w.ty < 7:
             if o - self.num_of_wid[7] > 0:
                 return 0.25 / (o-self.num_of_wid[7])
             elif o > 1 and self.num_of_wid[7] >= 4:
-                return 0.1 / o
+                return 0.15 / o
             else:
                 return 1
         else:
@@ -121,17 +162,10 @@ class Graph():
         #     return 1
         
     def target(self, item_id: int, in_w: Workbench):
-        if self.num_of_wid[7] == 0:
-            # if item_id <= 3 and in_w.ty == 9:
-            #     return 0.01
-            return 1
-        else:
-            if in_w.ty > 3 and self.num_of_wid[in_w.ty] <= 1:
-                return 1
         return 1
     
     def get_profit(self, item_id: int, in_w: Workbench, robots: [Robot], frame: int):
-        return (ITEM_SELL[item_id] - ITEM_BUY[item_id]) * self.bonus(in_w, robots) * self.indep(in_w, robots, frame) * self.target(item_id, in_w)
+        return (ITEM_SELL[item_id] - ITEM_BUY[item_id]) * self.bonus(in_w, robots, frame) * self.indep(in_w, robots, frame)
     
     def any_more_great_robot(self, r_pos: (float, float), w: Workbench, robots: [Robot]):
         for r in robots:
@@ -149,7 +183,7 @@ class Graph():
             return 1
         if new_w[0].ty == old_w[0].ty and new_w[1].ty == old_w[1].ty:
             if new_w[1].output > old_w[1].output:
-                return 1.5
+                return 1.2
         return 1
 
     def get_active_edge(self, r_pos, near_w: Workbench=None, robots: [Robot]=None, frame: int=0):
@@ -157,6 +191,8 @@ class Graph():
         # dist = (114514, 1919810)
         t = (114514, 1919810) 
         profit = 0
+
+        self.p_in_bench(robots)
         for w1 in self.workbenches:
             if w1 == None:
                 raise Exception("Workbenches is None")
@@ -170,38 +206,12 @@ class Graph():
                 if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
                    (self.get_profit(w1.ty, w2, robots, frame) * self.compare_to_ans((w1, w2), ans_w) / (t1 + t2) > profit / (t[0] + t[1])) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
-                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * 1.15 <= TOTAL_FRAME - frame:
+                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * 1.1 <= TOTAL_FRAME - frame:
                     # dist = dist_tmp
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty, w2, robots, frame)
                     ans_w = (w1, w2)
-        # if ans_w[0] != None and ans_w[1] != None:
-        #     raise Exception(str(ans_w[0]))
         return ans_w
-
-    def nearest_active_bench(self, pos: (float, float)):
-        near_w = None
-        dist = 114514
-        for w in (self.workbenches):
-            if self.is_active_outbench(w) and myutil.dist(w.pos, pos) < dist and self.is_benchlocked(w, w.ty) == False:
-                dist = myutil.dist(w.pos, pos)
-                near_w = w
-        return near_w
-    
-    def nearest_active_inbench(self, w1: Workbench):
-        near_w = None
-        dist = 114514
-        for w2 in self.workbenches:
-            if w2 == None:
-                raise Exception("Workbenches is None")
-            if w1.id == w2.id:
-                continue
-            # if self.is_active_inbench(w1, w2) and w2.ty == 4:
-                # raise Exception(format("Error! %d" % w1.ty))
-            if self.is_active_inbench(w1, w2) == True and myutil.dist(w1.pos, w2.pos) < dist and self.is_benchlocked(w2, w1.ty) == False:
-                dist = myutil.dist(w1.pos, w2.pos)
-                near_w = w2
-        return near_w
 
     def print_edges(self):
         print(self.edge_matrix)
