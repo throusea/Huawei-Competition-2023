@@ -62,10 +62,10 @@ def repulsion(robot1: Robot, robot2: Robot): # the repulsive force that robot1 g
     kdag = abs_da / math.pi * 0.7 + 0.3
     mag = max(1, krf / r ** 2) * kdag
     ag = angle(robot2.pos, robot1.pos)
-    if diff_angle(robot1.rot, ag) > 0:
-        ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
-    else:
-        ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    #if diff_angle(robot1.rot, ag) > 0:
+    #    ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
+    #else:
+    #    ag = float(ag + (1.1*math.cos(-1*diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
     fx = mag*math.cos(ag)
     fy = mag*math.sin(ag)
     return Force(fx,fy)
@@ -86,7 +86,7 @@ def attraction(robot: Robot): # the attractive force that robot get from workben
         bench = robot.loadingTask.to
     ag = angle(robot.pos, bench.pos)
     d = myutil.dist(robot.pos,bench.pos)
-    mag = 1
+    mag=1
     return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
 
 def bench_drag(robot:Robot):

@@ -35,7 +35,8 @@ class Workbench:
 
     def setLock(self, item_id: int, frame: int=0, val: bool=True):
         if myutil.is_in_set(item_id, self.lockset) ^ val == 0:
-            raise Exception("The lock error!")
+            # raise Exception("The lock error!")
+            return 
         self.lockset ^= 1<<item_id
         if val == True:
             self.locktime_dict[item_id] = frame
@@ -47,7 +48,8 @@ class Workbench:
     
     def getLockTime(self, item_id: int):
         if self.locktime_dict[item_id] == -1:
-            raise Exception(item_id)
+            # raise Exception(item_id)
+            return -1
         return self.locktime_dict[item_id]
 
     def num_in_inputset(self):

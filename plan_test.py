@@ -42,11 +42,13 @@ for r in robs:
         print(r.loadingTask.fo.ty, r.loadingTask.to.ty)
 
 # print(pln.select_one_edge(robs[0]))
-
-for w1 in graph.workbenches:
-    for w2 in graph.workbenches:
-        print((int)(graph.get_predict_tasktime(w1, w2)), end=" ")
-    print()
+print(graph.num_of_wid[7])
+graph.num_of_wid[7] = 0
+print(graph.get_profit(5, wbs[8]))
+# for w1 in graph.workbenches:
+#     for w2 in graph.workbenches:
+#         print((int)(graph.get_predict_tasktime(w1, w2)), end=" ")
+#     print()
 
 # print(wbs[0].getLockTime(wbs[0].ty))
 # for e in graph.edges:
