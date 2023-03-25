@@ -26,7 +26,7 @@ class MyListenser:
         else:
             return False
 
-    def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int):
+    def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int, q: int):
         if rob.state == RobotState.IDLE:
             if edge == None:
                 return 0
@@ -37,6 +37,11 @@ class MyListenser:
                 rob.state = RobotState.TAKING
                 return edge.fo.id
         elif rob.state == RobotState.TAKING:
+            if q == 1:
+                rob.state = RobotState.IDLE
+                self.plan.unlock_all(rob)
+                rob.loadingTask = None
+                return 0
             if rob.itemId == 0 and near == edge.fo.id:
                 rc.buy(rob)
 
@@ -105,15 +110,7 @@ class MyListenser:
         for i in range(0, 4):
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i]))
 
-        #col = rc.collision_predict(self.rob)
         occ = [False, False, False, False]
-
-        """for i in range(0, 4):
-            for j in range(i + 1, 4):
-                if col[i][j]:
-                    occ[i] = True
-                    occ[j] = True
-                    rc.collision_avoid(self.rob[i], self.rob[j])"""
 
         for i in range(0, 4):
             if not occ[i]:
