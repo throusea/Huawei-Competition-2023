@@ -16,6 +16,7 @@ class MyListenser:
         self.near = [0, 0, 0, 0]
         # self.date = open("date.txt", "w")
         self.frame = 0
+        self.m = 0
 
     def check_dis(self, rob: Robot, bench: Workbench):
         dis: float = myutil.dist(rob.pos, bench.pos)
@@ -97,8 +98,23 @@ class MyListenser:
             return True
         except EOFError:
             return False
+
+    def check_k(self):
+        m1 = [13.74937475,5,12,2,35, 0.15,35,0,25,2]
+        m2 = [55, 5, 11, 2, 50,0.3, 15, 0, 25, 2]
+        m3 = [13.74937475,5,11,2, 175,0.25,35,0,25,2]
+        m4 = [54.997499, 5, 11, 2, 175,0.25, 35, 0, 25, 2]
+        if self.m == 1:
+            return m1
+        elif self.m == 2:
+            return m2
+        elif self.m == 3:
+            return m3
+        else:
+            return m4
     def interact(self):
         rc = RobotControl()
+        rc.set_const(self.check_k(), self.m)
         if not self.check_EOF():
             return False
         self.collect()
@@ -135,7 +151,7 @@ class MyListenser:
     def init_data(self):
         cnt_rob = -1
         cnt_ben = -1
-
+        p = True
         for i in range(1, 101):
             inp = input()
             for j in range(1, 101):
@@ -148,6 +164,16 @@ class MyListenser:
                 elif c == '.':
                     pass
                 else:
+                    if p:
+                        p = False
+                        if int(c) == 1:
+                            self.m = 1
+                        elif int(c) == 6:
+                            self.m = 2
+                        elif int(c) == 3:
+                            self.m = 3
+                        elif int(c) == 7:
+                            self.m = 4
                     cnt_ben += 1
                     new_ben = Workbench(cnt_ben, int(c), (float(j - 1) * 0.5 + 0.25, 50 - 0.25 - float(i - 1) * 0.5))
                     self.bench.append(new_ben)

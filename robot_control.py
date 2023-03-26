@@ -59,11 +59,6 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-krf = 65
-kef = 5
-kb = 12
-kbd = 2
-
 def predict_col(r1: Robot, r2: Robot):
     if r1.itemId == 7 or r2.itemId == 7:
         return True
@@ -73,7 +68,7 @@ def predict_col(r1: Robot, r2: Robot):
     ry2 = r2.pos[1]
     rot1 = r1.rot
     rot2 = r2.rot
-    for i in range (0, 75):
+    for i in range (0, kup):
         rx1 += math.cos(rot1)*r1.vel
         ry1 += math.sin(rot1) * r1.vel
         rx2 += math.cos(rot2) * r2.vel
@@ -87,21 +82,25 @@ def predict_col(r1: Robot, r2: Robot):
 def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force that robot1 get from robot2
     kt = 1
     if not predict_col(robot1, robot2):
-       kt = 0.3
+       kt = ktt
     if int(frame) > 8700:
         if(robot1.itemId == 7):
             kt = 0
         elif(robot2.itemId == 7):
             kt = 1
         else:
-            kt = 0.1
+            kt = 0.005
 
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
     abs_da = max(da, -da)
     kdag = abs_da / math.pi * 0.8 + 0.2
     #kdag=1
-    mag = max(1, krf / r ** 2) * kdag
+
+    if mm != 4:
+        mag = max(1, krf / r ** 2,0) * kdag
+    else:
+        mag = max(1, krf * max(1 / r ** 2, 4 * math.e ** (-1.2 * r))) * kdag
     ag = angle(robot2.pos, robot1.pos)
     if abs_da > (math.pi*165/180):
         if diff_angle(robot1.rot, ag) > 0:
@@ -140,12 +139,32 @@ def bench_drag(robot:Robot):
     return Force(mag * math.cos(robot.rot+math.pi),mag * math.sin(robot.rot+math.pi))
 
 
-kp_f = 15
-kd_f = 0
-kp_r = 25
-kd_r = 3
 prio_state = RobotState.DELIVERING
 thresh_dist = 2.2
+
+def set_k(k:[], m:int):
+    global mm
+    global krf
+    global kef
+    global kb
+    global kbd
+    global kup
+    global ktt
+    mm = m
+    krf = k[0]
+    kef = k[1]
+    kb = k[2]
+    kbd = k[3]
+    kup = k[4]
+    ktt = k[5]
+    global kp_f
+    global kd_f
+    global kp_r
+    global kd_r
+    kp_f = k[6]
+    kd_f = k[7]
+    kp_r = k[8]
+    kd_r = k[9]
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
     all_forces = []
@@ -191,6 +210,10 @@ class RobotControl:
 
     def __init__(self):
         self.frame = 0
+        pass
+
+    def set_const(self, k:[], m):
+        set_k(k, m)
         pass
     def update_frame(self, frame:int):
         self.frame = frame
