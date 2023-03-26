@@ -18,11 +18,12 @@ class Graph():
         self.num_of_wid = [0] * 10
         self.disable_bench = 0
         self.q = np.zeros((50, 50), dtype=float)
-        self.learn_rate = 0.1
         self.p_list = [0, 0, 0]
         self.k_p = 0
+        self.learn_rate = 0.27
         self.k_dist = 1.414 # parameter in pre task
         self.k_t = 1
+        self.k_las = 1.05 # parameter at the end of time
     
     def create_edges(self):
         for i, w1 in enumerate(self.workbenches):
@@ -52,19 +53,22 @@ class Graph():
         return self.q[w1.id][w2.id]
     
     def get_predict_tasktime_on_pos(self, r_pos: (float, float), w2: Workbench):
-        return myutil.dist(r_pos, w2.pos) / 5 * 50 * 1.1
+        return myutil.dist(r_pos, w2.pos) / 5 * 50 * 1.2
     
     def update_tasktime(self, w1: Workbench, w2: Workbench, f: float):
         if w1.id != w2.id:
             self.q[w1.id][w2.id] += self.learn_rate * (f - self.q[w1.id][w2.id])
     
-    def get_waiting_time(self, w: Workbench):
+    def get_waiting_time(self, w: Workbench, frame: int):
         if w.ty == 7:
-            return 50
+            if frame > 8000:
+                return 100
+            else:
+                return 50
         return 0
     
-    def is_active_outbench(self, w: Workbench, t: float):
-        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t + self.get_waiting_time(w) >= w.status and w.status != -1))
+    def is_active_outbench(self, w: Workbench, t: float, frame: int):
+        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t + self.get_waiting_time(w, frame) >= w.status and w.status != -1))
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
         return (myutil.is_in_set(w2.ty, self.disable_bench) == False) and (myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty])) and (myutil.is_in_set(w1.ty, w2.inputs)) == False
@@ -84,21 +88,21 @@ class Graph():
         if self.num_of_wid[w.ty] >= 4:
             for r in robots:
                 if r.loadingTask != None and r.loadingTask.to.id == w.id:
-                    b *= (1.5+k)
+                    b *= (1.2+k)
         if self.num_of_wid[7] > 0:
             if w.ty == 9:
-                return 0.01
+                return 0.2
             elif no == 0:
                 return 1 * b
             elif no == 1:
-                return 1.4 * b
+                return 1.414 * b
             elif no == 2:
-                return 1.7 * b
+                return 1.732 * b
         else:
             if no == 0:
                 return 1
             elif no == 1:
-                return 1.1
+                return 1.2
         return 1
 
     def p_in_bench(self, robots: [Robot]):
@@ -169,11 +173,11 @@ class Graph():
             return 1
         if new_w[0].ty == old_w[0].ty and new_w[1].ty == old_w[1].ty:
             if new_w[1].output > old_w[1].output:
-                return 1.5
+                return 1.414
         return 1
     
     def pre_edge_task(self, r_pos, w: (Workbench, Workbench), frame: int, near_w: Workbench):
-        if frame > 8000:
+        if frame > 8500 or w[0] == None:
             return w
         w_tmp = (None, None)
         for w1 in self.workbenches:
@@ -181,12 +185,14 @@ class Graph():
                 if w1 == w2:
                     continue
                 t1 = self.get_predict_tasktime(near_w, w1) if near_w != None else self.get_predict_tasktime_on_pos(r_pos, w1)
-                if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
+                if self.is_active_outbench(w1, t1, frame) and self.is_active_inbench(w1, w2) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
                    w2.id == w[0].id and myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos) < myutil.dist(r_pos, w[0].pos) * self.k_dist:
-                   w_tmp = (w1, w2)
+                    if w_tmp[0] == None:
+                        w_tmp = (w1, w2)
+                    elif myutil.dist(r_pos, w_tmp[0].pos) + myutil.dist(w_tmp[0].pos, w_tmp[1].pos) > myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos):
+                        w_tmp = (w1, w2)
                 #    raise Exception(str.format("%d %d %d %d\n" % (w1.ty,w2.ty,w[0].ty,w[1].ty)))
-                   break
         if w_tmp[0] == None:
             return w
         else:
@@ -208,10 +214,10 @@ class Graph():
                 
                 t1 = self.get_predict_tasktime(near_w, w1) if near_w != None else self.get_predict_tasktime_on_pos(r_pos, w1)
                 t2 = self.get_predict_tasktime(w1, w2)
-                if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
+                if self.is_active_outbench(w1, t1, frame) and self.is_active_inbench(w1, w2) and\
                    (self.get_profit(w1.ty, w2, robots, frame) * self.compare_to_ans((w1, w2), ans_w) / (t1 + t2) > profit / (t[0] + t[1])) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
-                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * 1.35 <= TOTAL_FRAME - frame:
+                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * self.k_las <= TOTAL_FRAME - frame:
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty, w2, robots, frame)
                     ans_w = (w1, w2)
