@@ -20,9 +20,10 @@ class Graph():
         self.q = np.zeros((50, 50), dtype=float)
         self.p_list = [0, 0, 0]
         self.k_p = 0
-        self.learn_rate = 0.27
+        self.learn_rate = 0.141
         self.k_dist = 1.414 # parameter in pre task
         self.k_t = 1
+        self.k_d = 10 # parameter in any more robot
         self.k_las = 1.05 # parameter at the end of time
     
     def create_edges(self):
@@ -168,7 +169,7 @@ class Graph():
         for r in robots:
             if r.loadingTask != None:
                 task = r.loadingTask
-                if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos) + 10:
+                if task.to.id == w.id and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos) + self.k_d:
                     return True
             else:
                 if r.state == -1 and myutil.dist(r.pos, w.pos) < myutil.dist(r_pos, w.pos):
