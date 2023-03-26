@@ -53,7 +53,7 @@ class Graph():
         self.q[w1.id][w2.id] += self.learn_rate * (f - self.q[w1.id][w2.id])
     
     def is_active_outbench(self, w: Workbench, t: float):
-        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t+70 >= w.status and w.status != -1))
+        return myutil.is_in_set(w.ty, self.disable_bench) == False and (w.output == 1 or (t+60>= w.status and w.status != -1))
     
     def is_active_inbench(self, w1: Workbench, w2: Workbench):
         return (myutil.is_in_set(w2.ty, self.disable_bench) == False) and (myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty])) and (myutil.is_in_set(w1.ty, w2.inputs)) == False
