@@ -5,7 +5,7 @@ from robot import Robot
 
 
 robs = [
-    Robot(0, (25, 25)),
+    Robot(0, (2, 1)),
     Robot(1, (25, 42)),
     Robot(2, (42, 25)),
     Robot(3, (12, 25))
@@ -36,6 +36,7 @@ wbs[1].status = 10
 wbs[2].status = 10
 wbs[3].inputs = 0b010
 pln.allocate_rob(0)
+
 
 for r in robs:
     if r.loadingTask != None:
