@@ -60,11 +60,18 @@ class Graph():
             self.q[w1.id][w2.id] += self.learn_rate * (f - self.q[w1.id][w2.id])
     
     def get_waiting_time(self, w: Workbench, frame: int):
+        if self.num_of_wid[7] == 0:
+            return 0
         if w.ty == 7:
             if frame > 8000:
                 return 100
             else:
                 return 50
+        elif w.ty > 3:
+            if frame > 8000:
+                return 70
+            else:
+                return 35
         return 0
     
     def is_active_outbench(self, w: Workbench, t: float, frame: int):
