@@ -21,7 +21,7 @@ class Graph():
         self.learn_rate = 0.1
         self.p_list = [0, 0, 0]
         self.k_p = 0
-        self.k_dist = 1.5 # parameter in pre task
+        self.k_dist = 1.414 # parameter in pre task
         self.k_t = 1
     
     def create_edges(self):
@@ -211,7 +211,7 @@ class Graph():
                 if self.is_active_outbench(w1, t1) and self.is_active_inbench(w1, w2) and\
                    (self.get_profit(w1.ty, w2, robots, frame) * self.compare_to_ans((w1, w2), ans_w) / (t1 + t2) > profit / (t[0] + t[1])) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
-                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * 1.25 <= TOTAL_FRAME - frame:
+                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * 1.35 <= TOTAL_FRAME - frame:
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty, w2, robots, frame)
                     ans_w = (w1, w2)
