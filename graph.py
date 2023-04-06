@@ -1,3 +1,6 @@
+from typing import Tuple
+
+import convolution
 from workbench import Workbench, NEXT_WORKBENCH
 from item import ITEM_INPUT, ITEM_BUY, ITEM_SELL
 from edge import Edge
@@ -13,10 +16,10 @@ TOTAL_FRAME = 9000
 
 
 class Graph():
-    def __init__(self, workbenches: [Workbench] = [], grid_map = np.zeros(100, 100)):
+    def __init__(self, workbenches: [Workbench] = [], grid_map = None):
         self.workbenches = workbenches
         self.edge_matrix = np.zeros((len(workbenches)+1, len(workbenches)+1), dtype=Edge)
-        self.conv_map = []
+        self.conv_map2 = []
         self.conv_real_pos = []
 
         self.num_of_wid = [0] * 10
@@ -40,7 +43,7 @@ class Graph():
                     self.edge_matrix[i][j] = None
     
     def conv_map(self, grid_map):
-        self.conv_map, self.conv_real_pos = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
+        self.conv_map2, self.conv_real_pos = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
 
     def get_hval(self, grid_pos, w_pos):
         return myutil.dist(self.conv_real_pos[grid_pos], w_pos)
@@ -50,12 +53,12 @@ class Graph():
 
     def get_adjacent_pos(self, grid_pos):
         grid_list = []
-        dx[8] = [0, 0, 1, -1, 1, 1, -1, -1]
-        dy[8] = [1, -1, 0, 0, 1, -1, 1, -1]
+        dx = [0, 0, 1, -1, 1, 1, -1, -1]
+        dy = [1, -1, 0, 0, 1, -1, 1, -1]
         pos = grid_pos
         for i in range(8):
             n_pos = (pos[0]+dx[i], pos[1]+dy[i])
-            if self.conv_map[n_pos] == 1:
+            if self.conv_map2[n_pos] == 1:
                 continue
             if n_pos[0] < 0 or n_pos[0] >= 100:
                 continue
@@ -64,7 +67,7 @@ class Graph():
             grid_list.append(n_pos)
         return grid_list
     
-    def get_init_pos(self, real_pos: tuple(float, float)):
+    def get_init_pos_2(self, real_pos: tuple):
         """Description
         get the initial position for the robot in convoluted map.
 
@@ -74,11 +77,28 @@ class Graph():
         Returns:
             list[]: the initial position list for robot
         """
-        grid_list = []
-        raise Exception('Not implemented!')
+        transformed_pos=convolution.get_transformed_pos(real_pos)
+        x2_pos=(transformed_pos[0]*2,transformed_pos[1]*2)
+        grid_list=[]
+        xf=math.floor(x2_pos[0])-1
+        xc=math.ceil(x2_pos[0])-1
+        yf=math.floor(x2_pos[1])-1
+        yc=math.ceil(x2_pos[1])-1
+        if xf>=0&yf>=0&self.conv_map2[xf][yf]!=1:
+            grid_list.append((xf,yf))
+        if xf>=0&yc<=98&self.conv_map2[xf][yc]!=1:
+            grid_list.append((xf,yc))
+        if xc<=98&yf>=0&self.conv_map2[xc][yf]!=1:
+            grid_list.append((xc,yf))
+        if xc<=98&yc<=98&self.conv_map2[xc][yc]!=1:
+            grid_list.append((xc,yc))
         return grid_list
 
-    def a_star(self, real_pos: tuple(float, float), w_pos: tuple(float, float)):
+    def get_init_pos_3(self, real_pos: tuple):
+        transformed_pos = convolution.get_transformed_pos(real_pos)
+        return math.floor(transformed_pos[0] * 2) - 1, math.floor(transformed_pos[1] * 2) - 1
+
+    def a_star(self, real_pos: tuple, w_pos: tuple):
         """
 
         Args:

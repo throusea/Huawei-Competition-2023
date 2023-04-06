@@ -8,7 +8,7 @@ def conv(mat1, mat2):
     r1, c1 = mat1.shape
     r2, c2 = mat2.shape
     mat = np.zeros((r1-r2+1, c1-c2+1))
-    dis = np.zeros(mat.shape)
+    pos = np.zeros(mat.shape)
     for i in range(r1-r2+1):
         for j in range(c1-c2+1):
             for k in range(r2):
@@ -28,5 +28,8 @@ def close(r_pos1, r_pos2):
 # def get_conv_grid_pos(real_pos: tuple(float, float)):
 #     get_grid_pos(real_pos)
 
-def get_real_pos(grid_r_pos: tuple(int, int)):
-    return (pos[1], 50-pos[0])
+def get_real_pos(transformed_pos: tuple):
+    return (transformed_pos[1], 50 - transformed_pos[0])
+
+def get_transformed_pos(real_pos: tuple):
+    return (50-real_pos[1], real_pos[0])
