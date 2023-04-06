@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import myutil
 
 p = 0.5
 
@@ -16,10 +17,16 @@ def conv(mat1, mat2):
                     pos[i][j] = get_real_pos((i+p, j+p))
     return mat, pos
 
-def get_grid_pos(real_pos: tuple(float, float)):
-    y = math.floor(pos[0] / v)
-    x = 100 - math.floor(pos[1] / v)
-    return (x, y)
+def close(r_pos1, r_pos2):
+    return myutil.dist(r_pos1, r_pos2)
 
-def get_real_pos(grid_r_pos: tuple(float, float)):
+# def get_grid_pos(real_pos: tuple(float, float)):
+#     y = math.floor(pos[0] / v)
+#     x = 100 - math.floor(pos[1] / v)
+#     return (x, y)
+
+# def get_conv_grid_pos(real_pos: tuple(float, float)):
+#     get_grid_pos(real_pos)
+
+def get_real_pos(grid_r_pos: tuple(int, int)):
     return (pos[1], 50-pos[0])
