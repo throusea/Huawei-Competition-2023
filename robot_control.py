@@ -1,3 +1,5 @@
+# If you want to remove or regain repulsion force between robots, go to line 99 and 100.
+
 from robot import Robot, RobotState
 from workbench import Workbench
 import math
