@@ -15,7 +15,7 @@ class MyListenser:
         self.rob: [Robot] = self.plan.get_robots()
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
-        self.mp = np.zeros(100, 100)
+        self.mp = np.zeros((100, 100), dtype=int)
         # self.date = open("date.txt", "w")
         self.frame = 0
         self.m = 0
@@ -28,6 +28,10 @@ class MyListenser:
             return True
         else:
             return False
+
+    def check_near(self, p1, p2):
+        if(myutil.dist(p1, p2) <= 0.1)return True
+        return False
 
     def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int, q: bool):#changecommand
         if rob.state == RobotState.IDLE:
@@ -44,9 +48,15 @@ class MyListenser:
                 return 0
             if rob.itemId == 0 and near == edge.fo.id:
                 rc.buy(rob)
+            elif rob.itemId == 0 and edge.cmdid < len(edge.cmds2):
+                if(self.check_near((rob.pos, edge.cmds1[edge.cmdid]))):
+                    edge.cmdid += 1
+                    return edge.fo.id
+
 
             if rob.itemId != 0:
                 rob.state = RobotState.DELIVERING
+                rob.cmdid = 0
                 self.plan.unlock_first(rob, int(self.frame))
                 # if rob.last_w != None:
                 #     self.date.write(str.format("update from bench %d to bench %d: %f\n" % (rob.last_w.id, rob.loadingTask.fo.id, self.plan.graph.get_predict_tasktime(rob.last_w, rob.loadingTask.fo))))
@@ -55,6 +65,10 @@ class MyListenser:
         else:
             if rob.itemId != 0 and near == edge.to.id:
                 rc.sell(rob)
+            elif rob.itemId != 0 and edge.cmdid < len(edge.cmds2):
+                if (self.check_near((rob.pos, edge.cmds2[edge.cmdid]))):
+                    edge.cmdid += 1
+                    return edge.fo.id
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
