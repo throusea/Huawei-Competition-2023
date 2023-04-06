@@ -61,7 +61,7 @@ def resultant_force(forces: [Force]): # the resultant force of many forces
         result.y = result.y+f.y
     return result
 
-def predict_col(r1: Robot, r2: Robot):
+def predict_col(r1: Robot, r2: Robot): #碰撞预测
     if r1.itemId == 7 or r2.itemId == 7:
         return True
     rx1 = r1.pos[0]
@@ -70,7 +70,7 @@ def predict_col(r1: Robot, r2: Robot):
     ry2 = r2.pos[1]
     rot1 = r1.rot
     rot2 = r2.rot
-    for i in range (0, kup):
+    for i in range (0, 150):
         rx1 += math.cos(rot1)*r1.vel
         ry1 += math.sin(rot1) * r1.vel
         rx2 += math.cos(rot2) * r2.vel
@@ -84,7 +84,7 @@ def predict_col(r1: Robot, r2: Robot):
 def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force that robot1 get from robot2
     kt = 1
     if not predict_col(robot1, robot2):
-       kt = ktt
+       kt = 0.4#发现不会碰撞时斥力倍率
     if int(frame) > 8700:
         if(robot1.itemId == 7):
             kt = 0
@@ -145,28 +145,22 @@ prio_state = RobotState.DELIVERING
 thresh_dist = 2.2
 
 def set_k(k:[], m:int):
-    global mm
     global krf
     global kef
     global kb
     global kbd
-    global kup
-    global ktt
-    mm = m
-    krf = k[0]
-    kef = k[1]
-    kb = k[2]
-    kbd = k[3]
-    kup = k[4]
-    ktt = k[5]
+    krf = k[0] # repulsion force between robots
+    kef = k[1] # repulsion force between robot and edges
+    kb = k[2] # attractive force from workbench
+    kbd = k[3] # drag force near workbench
     global kp_f
     global kd_f
     global kp_r
     global kd_r
-    kp_f = k[6]
-    kd_f = k[7]
-    kp_r = k[8]
-    kd_r = k[9]
+    kp_f = k[6] # p in PID of velocity
+    kd_f = k[7] # d in PID of velocity
+    kp_r = k[8] # p in PID of angular velocity
+    kd_r = k[9] # d in PID of angular velocity
 
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
     all_forces = []
@@ -214,8 +208,8 @@ class RobotControl:
         self.frame = 0
         pass
 
-    def set_const(self, k:[], m):
-        set_k(k, m)
+    def set_const(self):
+        set_k()
         pass
     def update_frame(self, frame:int):
         self.frame = frame
