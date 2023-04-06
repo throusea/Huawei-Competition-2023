@@ -2,19 +2,23 @@ from workbench import Workbench, NEXT_WORKBENCH
 from item import ITEM_INPUT, ITEM_BUY, ITEM_SELL
 from edge import Edge
 from robot import Robot
+from queue import PriorityQueue
 import numpy as np
 import random
 import math
 import myutil
+import convolution as conv
 
 TOTAL_FRAME = 9000
 
 
 class Graph():
-    def __init__(self, workbenches: [Workbench] = []):
+    def __init__(self, workbenches: [Workbench] = [], grid_map = np.zeros(100, 100)):
         self.workbenches = workbenches
         self.edge_matrix = np.zeros((len(workbenches)+1, len(workbenches)+1), dtype=Edge)
-        self.edges = []
+        self.conv_map = []
+        self.conv_real_pos = []
+
         self.num_of_wid = [0] * 10
         self.disable_bench = 0
         self.q = np.zeros((50, 50), dtype=float)
@@ -31,10 +35,50 @@ class Graph():
             for j, w2 in enumerate(self.workbenches):
                 if myutil.is_in_set(w1.ty, ITEM_INPUT[w2.ty]):
                     e = Edge(w1, w2)
-                    self.edges.append(e)
                     self.edge_matrix[i][j] = e
                 else:
                     self.edge_matrix[i][j] = None
+    
+    def conv_map(self, grid_map):
+        self.conv_map, self.conv_real_pos = convolution.conv(grid_map, np.array([[1, 1], [1, 1]]))
+
+    def get_hval(self, grid_pos, w_pos):
+        return myutil.dist(self.conv_real_pos[grid_pos], w_pos)
+    
+    def get_gval(self, g_pos1, g_pos2):
+        return myutil.dist(self.conv_real_pos[g_pos1], self.conv_real_pos[g_pos2])
+
+
+    def get_adjacent_pos(self, grid_pos):
+        grid_list = []
+        dx[8] = [0, 0, 1, -1, 1, 1, -1, -1]
+        dy[8] = [1, -1, 0, 0, 1, -1, 1, -1]
+        pos = grid_pos
+        for i in range(8):
+            n_pos = (pos[0]+dx[i], pos[1]+dy[i])
+            if self.conv_map[n_pos] == 1:
+                continue
+            if n_pos[0] < 0 or n_pos[0] >= 100:
+                continue
+            if n_pos[1] < 0 or n_pos[1] >= 100:
+                continue
+            grid_list.append(n_pos)
+        return grid_list
+
+    def a_star(self, real_pos: tuple(float, float), w_pos: tuple(float, float)):
+        p_q = PriorityQueue()
+        g_pos = conv.get_grid_pos(real_pos)
+        p_q.put((0, g_pos))
+        fa = {}
+        while p_q.empty() == False:
+            val, g_pos = p_q.get()
+            if g_pos == conv.get_grid_pos(w_pos):
+                break
+            grid_list = self.get_adjacent_pos(g_pos)
+            for cell in grid_list:
+                p_q.put((val+self.get_gval(g_pos, cell)+self.get_hval(cell, w_pos), cell))
+        return None
+
 
     def anaylse_wb(self):
         wbs = self.workbenches
@@ -70,9 +114,9 @@ class Graph():
                 return 50
         elif w.ty > 3:
             if frame > 8000:
-                return 70
+                return 50
             else:
-                return 35
+                return 25
         return 0
     
     def is_active_outbench(self, w: Workbench, t: float, frame: int):
