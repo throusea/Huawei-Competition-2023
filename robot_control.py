@@ -1,226 +1,195 @@
-# If you want to remove or regain repulsion force between robots, go to line 99 and 100.
-
-from robot import Robot, RobotState
-from workbench import Workbench
-import math
 import myutil
+import numpy as np
+from robot import Robot
+from robot import RobotState
+from edge import Edge
+from workbench import Workbench
+from path_planning import PathPlanning
+from robot_control import RobotControl
 
 
-class Force:
-    def __init__(self, x:float, y:float):
-        self.x=x
-        self.y=y
 
-    def angle(self):
-        return angle((0,0),(self.x,self.y))
+class MyListenser:
 
-    def magnitude(self):
-        return myutil.dist((0,0),(self.x,self.y))
-    def multiple(self, c:float):
-        return Force(self.x*c,self.y*c)
-
-def target(robot:Robot):
-    if robot.state == RobotState.IDLE:
-        return None
-    if robot.state == RobotState.TAKING:
-        return robot.loadingTask.fo
-    else:
-        return robot.loadingTask.to
-
-def mov_predict(robot: Robot, last: int):
-    dx = robot.vel * math.cos(robot.rot) * 0.02 * last
-    dy = robot.vel * math.sin(robot.rot) * 0.02 * last
-    return robot.pos[0] + dx, robot.pos[1] + dy
-
-def angle(p1: tuple, p2: tuple): # p1 -> p2!
-    if p2[0] == p1[0]:
-        if p2[1] > p1[0]:
-            ag = math.pi / 2
-        else:
-            ag = -math.pi / 2
-    else:
-        ag = math.atan((p2[1] - p1[1]) / (p2[0] - p1[0]))
-    if ag < 0:
-        ag = ag + math.pi
-    if p2[1] < p1[1]:
-        ag = ag + math.pi
-    return ag
-
-def diff_angle(ag1: float, ag2: float): # the included angle between ag1 and ag2 (rotate from ag1 to ag2), in [-pi, pi]
-    diff = ag2 - ag1
-    if diff > math.pi:
-        diff = diff - 2 * math.pi
-    if diff < -math.pi:
-        diff = diff + 2 * math.pi
-    return diff
-
-def resultant_force(forces: [Force]): # the resultant force of many forces
-    result=Force(0,0)
-    for f in forces:
-        result.x = result.x+f.x
-        result.y = result.y+f.y
-    return result
-
-def predict_col(r1: Robot, r2: Robot): #碰撞预测
-    if r1.itemId == 7 or r2.itemId == 7:
-        return True
-    rx1 = r1.pos[0]
-    ry1 = r1.pos[1]
-    rx2 = r2.pos[0]
-    ry2 = r2.pos[1]
-    rot1 = r1.rot
-    rot2 = r2.rot
-    for i in range (0, 150):
-        rx1 += math.cos(rot1)*r1.vel
-        ry1 += math.sin(rot1) * r1.vel
-        rx2 += math.cos(rot2) * r2.vel
-        ry2 += math.sin(rot2) * r2.vel
-        rot1 += r1.w
-        rot2 += r2.w
-        if myutil.dist((rx1, ry1), (rx2, ry2)) < 5:
-            return True
-    return False
-
-def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force that robot1 get from robot2
-    kt = 1
-    if not predict_col(robot1, robot2):
-       kt = 0.4#发现不会碰撞时斥力倍率
-    if int(frame) > 8700:
-        if(robot1.itemId == 7):
-            kt = 0
-        elif(robot2.itemId == 7):
-            kt = 1
-        else:
-            kt = 0.005
-
-    r = myutil.dist(robot1.pos, robot2.pos)
-    da = diff_angle(robot1.rot, robot2.rot)
-    abs_da = max(da, -da)
-    #kdag = abs_da / math.pi * 0.8 + 0.2 # Have repulsion force.
-    kdag=0 # Completely remove repulsion force.
-
-    if mm != 4:
-        mag = max(1, krf / r ** 2,0) * kdag
-    else:
-        mag = max(1, krf * max(1 / r ** 2, 4 * math.e ** (-1.2 * r))) * kdag
-    ag = angle(robot2.pos, robot1.pos)
-    if abs_da > (math.pi*165/180):
-        if diff_angle(robot1.rot, ag) > 0:
-            ag = float(ag - (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
-        else:
-            ag = float(ag + (1.1*math.cos(diff_angle(robot1.rot, ag)/2)) * math.pi / 2)
-    fx = mag*math.cos(ag)
-    fy = mag*math.sin(ag)
-    return Force(fx*kt,fy*kt)
-
-def edge_repulsion(robot: Robot): # the repulsive force that robot get from all the edges
-    fl = Force(kef / robot.pos[0] ** 2, 0)
-    fr = Force(-kef / (50 - robot.pos[0]) ** 2, 0)
-    fc = Force(0, -kef / (50 - robot.pos[1]) ** 2)
-    fb = Force(0, kef / robot.pos[1] ** 2)
-    return resultant_force([fl,fr,fc,fb])
-
-def attraction(robot: Robot): # the attractive force that robot get from workbench
-    bench=target(robot)
-    if bench is None:
-        return Force(0,0)
-    ag = angle(robot.pos, bench.pos)
-    d = myutil.dist(robot.pos,bench.pos)
-    mag=1
-    return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
-
-def bench_drag(robot:Robot):
-    bench=target(robot)
-    if bench is None:
-        return Force(0,0)
-    ag = angle(robot.pos, bench.pos)
-    d = myutil.dist(robot.pos,bench.pos)
-    dag = diff_angle(robot.rot,ag)
-    kdag = math.sin(dag)**2
-    mag = (1/d) * kbd * robot.vel
-    return Force(mag * math.cos(robot.rot+math.pi),mag * math.sin(robot.rot+math.pi))
-
-
-prio_state = RobotState.DELIVERING
-thresh_dist = 2.2
-
-def set_k(k:[], m:int):
-    global krf
-    global kef
-    global kb
-    global kbd
-    krf = k[0] # repulsion force between robots
-    kef = k[1] # repulsion force between robot and edges
-    kb = k[2] # attractive force from workbench
-    kbd = k[3] # drag force near workbench
-    global kp_f
-    global kd_f
-    global kp_r
-    global kd_r
-    kp_f = k[6] # p in PID of velocity
-    kd_f = k[7] # d in PID of velocity
-    kp_r = k[8] # p in PID of angular velocity
-    kd_r = k[9] # d in PID of angular velocity
-
-def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
-    all_forces = []
-    benches_nearer = False
-    tar_bench=target(robot)
-    if tar_bench is not None:
-        tar_dist=myutil.dist(robot.pos,tar_bench.pos)
-        if robot.state != prio_state:
-            tar_dist += thresh_dist
-    for i in range(0,len(other)):
-        if other[i].id == robot.id:
-            continue
-        other_tar=target(other[i])
-        if (tar_bench is not None) and (other_tar is not None):
-            if other_tar.id == tar_bench.id:
-                other_dist = myutil.dist(other[i].pos,other_tar.pos)
-                if other[i].state != prio_state:
-                    other_dist += thresh_dist
-                benches_nearer |= (other_dist<tar_dist)
-        all_forces.append(repulsion(robot, other[i], frame))
-    if tar_bench is not None:
-        if robot.state != prio_state:
-            tar_dist -= thresh_dist
-        benches_nearer &= (tar_dist < thresh_dist)
-    all_forces.append(edge_repulsion(robot))
-    if benches_nearer:
-        all_forces.append(attraction(robot).multiple(0.1))
-    else:
-        all_forces.append(attraction(robot))
-    all_forces.append(bench_drag(robot))
-    force = resultant_force(all_forces)
-    dag = diff_angle(robot.rot, force.angle()) # difference angle between robot.rot and force
-    kdag = math.pi/2-abs(dag)
-    kdag *= abs(kdag)
-    #if kdag > 0:
-    #    kdag = max(0, kdag - 0.2) / 0.8
-    #else:
-    #    kdag = min(0, kdag + 0.2) / 0.8
-    cfm = force.magnitude()*kdag # magnitude of component force on the direction of robot.rot
-    return kp_f * cfm - kd_f * robot.vel, kp_r * dag - kd_r * robot.w
-
-class RobotControl:
-
-    def __init__(self):
+    def __init__(self, plan: PathPlanning):
+        self.plan = plan
+        self.rob: [Robot] = self.plan.get_robots()
+        self.bench: [Workbench] = self.plan.get_workbenches()
+        self.near = [0, 0, 0, 0]
+        self.mp = np.zeros(100, 100)
+        # self.date = open("date.txt", "w")
         self.frame = 0
+        self.m = 0
+
+    def check_dis(self, rob: Robot, bench: Workbench):
+        dis: float = myutil.dist(rob.pos, bench.pos)
+        v: float = 0.12
+        t: float = dis / v
+        if (t >= bench.status) and (bench.status != -1):
+            return True
+        else:
+            return False
+
+    def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int, q: bool):#changecommand
+        if rob.state == RobotState.IDLE:
+            if edge == None:
+                return 0
+            else:
+                rob.state = RobotState.TAKING
+                return edge.fo.id
+        elif rob.state == RobotState.TAKING:
+            if q and rob.itemId == 0:
+                self.plan.unlock_all(rob, self.frame)
+                rob.state = RobotState.IDLE
+                rob.loadingTask = None
+                return 0
+            if rob.itemId == 0 and near == edge.fo.id:
+                rc.buy(rob)
+
+            if rob.itemId != 0:
+                rob.state = RobotState.DELIVERING
+                self.plan.unlock_first(rob, int(self.frame))
+                # if rob.last_w != None:
+                #     self.date.write(str.format("update from bench %d to bench %d: %f\n" % (rob.last_w.id, rob.loadingTask.fo.id, self.plan.graph.get_predict_tasktime(rob.last_w, rob.loadingTask.fo))))
+                rob.last_w = edge.fo
+                return edge.to.id
+        else:
+            if rob.itemId != 0 and near == edge.to.id:
+                rc.sell(rob)
+
+            if rob.itemId == 0:
+                rob.state = RobotState.IDLE
+                self.plan.unlock(rob, int(self.frame))
+                # if rob.last_w != None:
+                #     self.date.write(str.format("update from bench %d to bench %d: %f\n" % (rob.last_w.id, rob.loadingTask.to.id, self.plan.graph.get_predict_tasktime(rob.last_w, rob.loadingTask.to))))
+                rob.last_w = edge.to
+                rob.loadingTask = None
+                return 0
+
+    def collect(self):#每一帧的评测机返回的信息在这里读入
+        s = input()
+        num_bench = int(s)
+
+        for i in range(0, num_bench):#工作台信息
+            s = input()
+            s = s.split(' ')
+
+            type = s[0]
+            ben_pos: tuple = (s[1], s[2])
+            self.bench[i].status = int(s[3])
+            self.bench[i].inputs = int(s[4])
+            self.bench[i].output = int(s[5])
+
+        for i in range(0, 4):#机器人信息
+            s = input()
+            s = s.split(' ')
+
+            self.near[i] = int(s[0])
+            self.rob[i].itemId = int(s[1])
+            self.rob[i].w = float(s[4])
+            self.rob[i].vel = (float(s[5]) ** 2 + float(s[6]) ** 2) ** 0.5
+            self.rob[i].rot = float(s[7])
+            self.rob[i].pos = (float(s[8]), float(s[9]))
+
+
+
+    def check_EOF(self):#检查EOF，不用改
+        try:
+            s = input()
+            s = s.split()
+            self.frame = s[0]
+            return True
+        except EOFError:
+            return False
+
+    # def check_k(self)://这是被删掉的地图特化
+    #     m1 = [13.74937475,5,13,2,35, 0.15,35,0,25,2] //斥力较小 工作台引力大
+    #     m2 = [55, 5, 11, 2, 50,0.3, 15, 0, 25, 2] // 斥力大
+    #     m3 = [13.8,5,11,2, 175,0.25,35,0,25,2] //斥力较小
+    #     m4 = [55, 5, 11, 2, 175,0.25, 35, 0, 25, 2]//斥力最大
+    #     if self.m == 1:
+    #         return m1
+    #     elif self.m == 2:
+    #         return m2
+    #     elif self.m == 3:
+    #         return m3
+    #     else:
+    #         return m4
+    def interact(self):
+        rc = RobotControl() #新建robotcontrol
+        rc.set_const() #设定参数
+        if not self.check_EOF(): #EOF
+            return False
+        self.collect() #收集评测机返回数据
+        print(self.frame) #打印当前帧
+        rc.update_frame(self.frame) #更新rc的帧
+        target = [0]
+        self.plan.change_robot_tobech() #planner给robot分配新一轮的任务
+        li = self.plan.any_more_great_robot() #planner检测是否有更优任务
+        for i in range(0, 4): #给4个机器人更新状态(change_robot_command函数)，并且返回每个机器人的目的workbench，存到target数组中
+            #### 一个可行的更改思路，就是把workbench改成node或是什么其他的类型，返回改为机器人该去的node，这样其他的都不用大改
+            target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i], li[i]))
+
+        # occ = [False, False, False, False]#碰撞检测，现在没用
+        #
+        # for i in range(0, 4):
+        #     if not occ[i]:
+        #         rc.forward(self.rob[i], self.rob)
+
+        # self.date.write(str("Frame:%s\n"%(self.frame)))#输出信息
+        # self.date.write(str(self.near)+"\n")
+        # for i in range(0, 4):
+        #     self.date.write(str(self.rob[i]) + "\n")
+
+        # for i in range(0, len(self.bench)):
+        #     self.date.write(str(self.bench[i]) + "\n")
+        # self.date.write(str(self.plan.graph.q))
+        # self.date.write("\n")
+
+
+        self.plan.allocate_rob(int(self.frame))
+        # self.date.flush()
+
+        return True
+
+    def init_data(self): #初始化数据，整场比赛只会执行一次
+        cnt_rob = -1 #计数器
+        cnt_ben = -1 #计数器
+        p = True
+        for i in range(1, 101):
+            inp = input()
+            for j in range(1, 101):
+                c = inp[j - 1]
+                if c == 'A':#机器人
+                    cnt_rob += 1
+                    new_rob = Robot(cnt_rob, (float(j - 1) * 0.5 + 0.25, 50 - 0.25 - float(i - 1) * 0.5))
+                    self.rob.append(new_rob)
+                    # print(str(new_rob.id)+" "+str(new_rob.pos[0])+" "+str(new_rob.pos[1]))
+                    self.mp[i-1][j-1] = 0
+                elif c == '.': #空地
+                    self.mp[i - 1][j - 1] = 0
+                elif c == '#':
+                    self.mp[i - 1][j - 1] = 1
+                else: #工作台，但是新题目下需要加一个if判断是不是障碍物
+                    self.mp[i - 1][j - 1] = 0
+                    if p:
+                        p = False
+                        if int(c) == 1:
+                            self.m = 1
+                        elif int(c) == 6:
+                            self.m = 2
+                        elif int(c) == 3:
+                            self.m = 3
+                        elif int(c) == 7:
+                            self.m = 4
+                    cnt_ben += 1
+                    new_ben = Workbench(cnt_ben, int(c), (float(j - 1) * 0.5 + 0.25, 50 - 0.25 - float(i - 1) * 0.5))
+                    self.bench.append(new_ben)
+        ##这个位置地图已经读入完场了
+        ##可以在这个地方加一个新的函数，判断每个3*3和2*2的格子能否向其四周的几个地方运动
+        self.plan.init_task()##初始化任务
         pass
 
-    def set_const(self):
-        set_k()
-        pass
-    def update_frame(self, frame:int):
-        self.frame = frame
-    def forward(self, robot: Robot, all_robots: [Robot]):
-        nxt = next_velocity_and_angular_velocity(robot, all_robots, self.frame)
-        print("forward %d %f" % (robot.id, nxt[0]))
-        print("rotate %d %f" % (robot.id, nxt[1]))
-
-    def buy(self, robot: Robot):
-        print("buy %d" % robot.id)
-
-    def sell(self, robot: Robot):
-        print("sell %d" % robot.id)
-
+    """def close_file(self):
+        self.date.close()
+        pass"""
