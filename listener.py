@@ -15,7 +15,7 @@ class MyListenser:
         self.rob: [Robot] = self.plan.get_robots()
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
-        self.mp = np.zeros(100, 100)
+        self.mp = np.zeros((100, 100), dtype=int)
         # self.date = open("date.txt", "w")
         self.frame = 0
         self.m = 0
@@ -28,6 +28,10 @@ class MyListenser:
             return True
         else:
             return False
+
+    def check_dis(self, p1, p2):
+        if(myutil.dist(p1, p2) <= 0.1)return True
+        return False
 
     def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int, q: bool):#changecommand
         if rob.state == RobotState.IDLE:
@@ -44,6 +48,11 @@ class MyListenser:
                 return 0
             if rob.itemId == 0 and near == edge.fo.id:
                 rc.buy(rob)
+            elif rob.itemId == 0:
+                if(self.check_near((rob.pos, edge.cmd1[rob.cmd1id]))):
+                    rob.cmd1id += 1
+                    return edge.fo.id
+
 
             if rob.itemId != 0:
                 rob.state = RobotState.DELIVERING
@@ -55,6 +64,10 @@ class MyListenser:
         else:
             if rob.itemId != 0 and near == edge.to.id:
                 rc.sell(rob)
+            elif rob.itemId != 0:
+                if (self.check_near((rob.pos, edge.cmd2[rob.cmd2id]))):
+                    rob.cmd2id += 1
+                    return edge.fo.id
 
             if rob.itemId == 0:
                 rob.state = RobotState.IDLE
