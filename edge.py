@@ -14,8 +14,7 @@ class Edge:
         self.to = to
         self.dis = myutil.dist(fo.pos, to.pos)
         self.state = EdgeState.IDLE
-        self.cmd1 = None
-        self.cmd2 = None
+        self.cmds = []
 
     def __str__(self):
         return ("Edge:[\nfo:%s\nto:%s\ndis:%s, state:%s\n]"%(self.fo, self.to, self.dis, self.state))
