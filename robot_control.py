@@ -94,8 +94,8 @@ def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force th
     r = myutil.dist(robot1.pos, robot2.pos)
     da = diff_angle(robot1.rot, robot2.rot)
     abs_da = max(da, -da)
-    kdag = 0
-    #kdag=1
+    #kdag = abs_da / math.pi * 0.8 + 0.2 # Have repulsion force.
+    kdag=0 # Completely remove repulsion force.
 
     if mm != 4:
         mag = max(1, krf / r ** 2,0) * kdag
