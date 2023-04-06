@@ -99,22 +99,21 @@ class MyListenser:
         except EOFError:
             return False
 
-    def check_k(self):
-        m1 = [13.74937475,5,12,2,35, 0.145,35,0,25,2]
-        m2 = [55, 5, 11, 2, 50,0.3, 15, 0, 25, 2]
-        m3 = [13.8,5,11,2, 175,0.25,35,0,25,2]
-        m4 = [55, 5, 11, 2, 175,0.25, 35, 0, 25, 2]
-        if self.m == 1:
-            return m1
-        elif self.m == 2:
-            return m2
-        elif self.m == 3:
-            return m3
-        else:
-            return m4
+    # def check_k(self):
+    #     m1 = [13.74937475,5,13,2,35, 0.15,35,0,25,2] //斥力较小 工作台引力大
+    #     m2 = [55, 5, 11, 2, 50,0.3, 15, 0, 25, 2] // 斥力大
+    #     m3 = [13.8,5,11,2, 175,0.25,35,0,25,2] //斥力较小
+    #     m4 = [55, 5, 11, 2, 175,0.25, 35, 0, 25, 2]//斥力最大
+    #     if self.m == 1:
+    #         return m1
+    #     elif self.m == 2:
+    #         return m2
+    #     elif self.m == 3:
+    #         return m3
+    #     else:
+    #         return m4
     def interact(self):
         rc = RobotControl()
-        rc.set_const(self.check_k(), self.m)
         if not self.check_EOF():
             return False
         self.collect()
