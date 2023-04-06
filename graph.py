@@ -40,14 +40,13 @@ class Graph():
                     self.edge_matrix[i][j] = None
     
     def conv_map(self, grid_map):
-        self.conv_map, self.conv_real_pos = convolution.conv(grid_map, np.array([[1, 1], [1, 1]]))
+        self.conv_map, self.conv_real_pos = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
 
     def get_hval(self, grid_pos, w_pos):
         return myutil.dist(self.conv_real_pos[grid_pos], w_pos)
     
     def get_gval(self, g_pos1, g_pos2):
         return myutil.dist(self.conv_real_pos[g_pos1], self.conv_real_pos[g_pos2])
-
 
     def get_adjacent_pos(self, grid_pos):
         grid_list = []
@@ -64,20 +63,52 @@ class Graph():
                 continue
             grid_list.append(n_pos)
         return grid_list
+    
+    def get_init_pos(self, real_pos: tuple(float, float)):
+        """Description
+        get the initial position for the robot in convoluted map.
+
+        Args:
+            real_pos (tuple): real position of robot
+
+        Returns:
+            list[]: the initial position list for robot
+        """
+        grid_list = []
+        raise Exception('Not implemented!')
+        return grid_list
 
     def a_star(self, real_pos: tuple(float, float), w_pos: tuple(float, float)):
+        """
+
+        Args:
+            real_pos (tuple): the real position of robot
+            w_pos (tuple): the real position of workbench
+
+        Returns:
+            list[(float, float)]: position list
+        """
         p_q = PriorityQueue()
+        # i_list = self.get_init_pos(real_pos)
         g_pos = conv.get_grid_pos(real_pos)
+
         p_q.put((0, g_pos))
         fa = {}
+        las_pos = None
+        cmds = []
         while p_q.empty() == False:
             val, g_pos = p_q.get()
-            if g_pos == conv.get_grid_pos(w_pos):
+            if conv.close(self.conv_real_pos(g_pos), w_pos):
+                las_pos = g_pos
                 break
             grid_list = self.get_adjacent_pos(g_pos)
             for cell in grid_list:
                 p_q.put((val+self.get_gval(g_pos, cell)+self.get_hval(cell, w_pos), cell))
-        return None
+                fa[cell] = g_pos
+        while fa.get(p) != None:
+            cmds.append(p)
+            p = fa[p]
+        return cmds
 
 
     def anaylse_wb(self):
@@ -263,7 +294,6 @@ class Graph():
             for w2 in self.workbenches:
                 if w1 == w2:
                     continue
-                
                 t1 = self.get_predict_tasktime(near_w, w1) if near_w != None else self.get_predict_tasktime_on_pos(r_pos, w1)
                 t2 = self.get_predict_tasktime(w1, w2)
                 if self.is_active_outbench(w1, t1, frame) and self.is_active_inbench(w1, w2) and\
