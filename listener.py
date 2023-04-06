@@ -99,7 +99,7 @@ class MyListenser:
         except EOFError:
             return False
 
-    # def check_k(self):
+    # def check_k(self)://这是被删掉的地图特化
     #     m1 = [13.74937475,5,13,2,35, 0.15,35,0,25,2] //斥力较小 工作台引力大
     #     m2 = [55, 5, 11, 2, 50,0.3, 15, 0, 25, 2] // 斥力大
     #     m3 = [13.8,5,11,2, 175,0.25,35,0,25,2] //斥力较小
@@ -114,6 +114,7 @@ class MyListenser:
     #         return m4
     def interact(self):
         rc = RobotControl()
+        rc.set_const()
         if not self.check_EOF():
             return False
         self.collect()
