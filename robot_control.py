@@ -23,9 +23,9 @@ def target(robot:Robot):
     if robot.state == RobotState.IDLE:
         return None
     if robot.state == RobotState.TAKING:
-        return robot.loadingTask.fo
+        return robot.loadingTask.cmds1[robot.loadingTask.cmdid]
     else:
-        return robot.loadingTask.to
+        return robot.loadingTask.cmds2[robot.loadingTask.cmdid]
 
 def mov_predict(robot: Robot, last: int):
     dx = robot.vel * math.cos(robot.rot) * 0.02 * last
@@ -121,20 +121,20 @@ def edge_repulsion(robot: Robot): # the repulsive force that robot get from all 
     return resultant_force([fl,fr,fc,fb])
 
 def attraction(robot: Robot): # the attractive force that robot get from workbench
-    bench=target(robot)
-    if bench is None:
+    tar=target(robot)
+    if tar is None:
         return Force(0,0)
-    ag = angle(robot.pos, bench.pos)
-    d = myutil.dist(robot.pos,bench.pos)
+    ag = angle(robot.pos, tar)
+    d = myutil.dist(robot.pos,tar)
     mag=1
     return Force(kb * mag * math.cos(ag), kb * mag * math.sin(ag))
 
 def bench_drag(robot:Robot):
-    bench=target(robot)
-    if bench is None:
+    tar=target(robot)
+    if tar is None:
         return Force(0,0)
-    ag = angle(robot.pos, bench.pos)
-    d = myutil.dist(robot.pos,bench.pos)
+    ag = angle(robot.pos, tar)
+    d = myutil.dist(robot.pos,tar)
     dag = diff_angle(robot.rot,ag)
     kdag = math.sin(dag)**2
     mag = (1/d) * kbd * robot.vel
@@ -165,23 +165,23 @@ def set_k(k:[], m:int):
 def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
     all_forces = []
     benches_nearer = False
-    tar_bench=target(robot)
-    if tar_bench is not None:
-        tar_dist=myutil.dist(robot.pos,tar_bench.pos)
+    tar=target(robot)
+    if tar is not None:
+        tar_dist=myutil.dist(robot.pos,tar)
         if robot.state != prio_state:
             tar_dist += thresh_dist
     for i in range(0,len(other)):
         if other[i].id == robot.id:
             continue
         other_tar=target(other[i])
-        if (tar_bench is not None) and (other_tar is not None):
-            if other_tar.id == tar_bench.id:
-                other_dist = myutil.dist(other[i].pos,other_tar.pos)
+        if (tar is not None) and (other_tar is not None):
+            if other_tar[0] == tar[0] & other_tar[1] == tar[1]:
+                other_dist = myutil.dist(other[i].pos,other_tar)
                 if other[i].state != prio_state:
                     other_dist += thresh_dist
                 benches_nearer |= (other_dist<tar_dist)
         all_forces.append(repulsion(robot, other[i], frame))
-    if tar_bench is not None:
+    if tar is not None:
         if robot.state != prio_state:
             tar_dist -= thresh_dist
         benches_nearer &= (tar_dist < thresh_dist)
