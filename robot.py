@@ -20,7 +20,7 @@ class Robot():
         self.last_w = None
 
     def __str__(self):
-        return ("id:%s, pos:(%s, %s), vel:%s, rot:%s, w:%s, state:%s, loadingItem:%s, loadingTask:%s, last_w%s"%(self.id, self.pos[0], self.pos[1], self.vel, self.rot, self.w, self.state, self.itemId, self.loadingTask, self.last_w))
+        return ("id:%s, pos:(%s, %s), vel:%s, rot:%s, w:%s, state:%s, loadingItem:%s, loadingTask:%s, last_w:%s"%(self.id, self.pos[0], self.pos[1], self.vel, self.rot, self.w, self.state, self.itemId, self.loadingTask, self.last_w))
     
     def set_task(self, e):
         # e.set_cmd(self)

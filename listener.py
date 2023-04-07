@@ -16,7 +16,7 @@ class MyListenser:
         self.bench: [Workbench] = self.plan.get_workbenches()
         self.near = [0, 0, 0, 0]
         self.mp = np.zeros((100, 100), dtype=int)
-        # self.date = open("date.txt", "w")
+        self.date = open("date.txt", "w")
         self.frame = 0
         self.m = 0
 
@@ -30,7 +30,8 @@ class MyListenser:
             return False
 
     def check_near(self, p1, p2):
-        if(myutil.dist(p1, p2) <= 0.1)return True
+        if myutil.dist(p1, p2) <= 0.1:
+            return True
         return False
 
     def change_robot_command(self, rc: RobotControl, rob: Robot, edge: Edge, near: int, q: bool):#changecommand
@@ -49,7 +50,7 @@ class MyListenser:
             if rob.itemId == 0 and near == edge.fo.id:
                 rc.buy(rob)
             elif rob.itemId == 0 and edge.cmdid < len(edge.cmds2):
-                if(self.check_near((rob.pos, edge.cmds1[edge.cmdid]))):
+                if(self.check_near(rob.pos, edge.cmds1[edge.cmdid])):
                     edge.cmdid += 1
                     return edge.fo.id
 
@@ -142,26 +143,21 @@ class MyListenser:
         for i in range(0, 4): #给4个机器人更新状态(change_robot_command函数)，并且返回每个机器人的目的workbench，存到target数组中
             #### 一个可行的更改思路，就是把workbench改成node或是什么其他的类型，返回改为机器人该去的node，这样其他的都不用大改
             target.append(self.change_robot_command(rc, self.rob[i], self.rob[i].loadingTask, self.near[i], li[i]))
+        
+        occ = [False, False, False, False]
 
-        # occ = [False, False, False, False]#碰撞检测，现在没用
-        #
-        # for i in range(0, 4):
-        #     if not occ[i]:
-        #         rc.forward(self.rob[i], self.rob)
+        for i in range(0, 4):
+            if not occ[i]:
+                rc.forward(self.rob[i], self.rob)
 
-        # self.date.write(str("Frame:%s\n"%(self.frame)))#输出信息
-        # self.date.write(str(self.near)+"\n")
-        # for i in range(0, 4):
-        #     self.date.write(str(self.rob[i]) + "\n")
-
-        # for i in range(0, len(self.bench)):
-        #     self.date.write(str(self.bench[i]) + "\n")
-        # self.date.write(str(self.plan.graph.q))
-        # self.date.write("\n")
+        self.date.write(str("Frame:%s\n"%(self.frame)))#输出信息
+        self.date.write(str(self.near)+"\n")
+        for i in range(0, 4):
+            self.date.write(str(self.rob[i]) + "\n")
+        self.date.flush()
 
 
         self.plan.allocate_rob(int(self.frame))
-        # self.date.flush()
 
         return True
 
@@ -201,7 +197,7 @@ class MyListenser:
                     self.bench.append(new_ben)
         ##这个位置地图已经读入完场了
         ##可以在这个地方加一个新的函数，判断每个3*3和2*2的格子能否向其四周的几个地方运动
-        self.plan.init_task()##初始化任务
+        self.plan.init_task(self.mp)##初始化任务
         pass
 
     """def close_file(self):

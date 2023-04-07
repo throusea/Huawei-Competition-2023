@@ -16,11 +16,14 @@ TOTAL_FRAME = 9000
 
 
 class Graph():
-    def __init__(self, workbenches: [Workbench] = [], grid_map = None):
+    def __init__(self, workbenches: [Workbench] = []):
         self.workbenches = workbenches
         self.edge_matrix = np.zeros((len(workbenches)+1, len(workbenches)+1), dtype=Edge)
-        self.conv_map2 = []
-        self.conv_real_pos = []
+        self.conv_map2 = None
+        self.conv_real_pos2 = None
+        self.conv_map3 = None
+        self.conv_real_pos3 = None
+        self.has_visited = {}
 
         self.num_of_wid = [0] * 10
         self.disable_bench = 0
@@ -33,6 +36,11 @@ class Graph():
         self.k_d = 10 # parameter in any more robot
         self.k_las = 1.05 # parameter at the end of time
     
+    def init_all(self):
+        self.create_edges()
+        self.anaylse_wb()
+        self.init_predict_tasktime()
+    
     def create_edges(self):
         for i, w1 in enumerate(self.workbenches):
             for j, w2 in enumerate(self.workbenches):
@@ -43,13 +51,14 @@ class Graph():
                     self.edge_matrix[i][j] = None
     
     def conv_map(self, grid_map):
-        self.conv_map2, self.conv_real_pos = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
+        self.conv_map2, self.conv_real_pos2 = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
+        self.conv_map3, self.conv_real_pos3 = conv.conv(grid_map, np.array([[0.5, 1., 0.5], [1., 1., 1.], [0.5, 1., 0.5]]))
 
     def get_hval(self, grid_pos, w_pos):
-        return myutil.dist(self.conv_real_pos[grid_pos], w_pos)
+        return myutil.dist(self.conv_real_pos2[grid_pos], w_pos)
     
     def get_gval(self, g_pos1, g_pos2):
-        return myutil.dist(self.conv_real_pos[g_pos1], self.conv_real_pos[g_pos2])
+        return myutil.dist(self.conv_real_pos2[g_pos1], self.conv_real_pos2[g_pos2])
 
     def get_adjacent_pos(self, grid_pos):
         grid_list = []
@@ -58,11 +67,11 @@ class Graph():
         pos = grid_pos
         for i in range(8):
             n_pos = (pos[0]+dx[i], pos[1]+dy[i])
-            if self.conv_map2[n_pos] == 1:
+            if n_pos[0] < 0 or n_pos[0] >= 99:
                 continue
-            if n_pos[0] < 0 or n_pos[0] >= 100:
+            if n_pos[1] < 0 or n_pos[1] >= 99:
                 continue
-            if n_pos[1] < 0 or n_pos[1] >= 100:
+            if self.conv_map2[n_pos] == 1 or self.has_visited.get(n_pos) != None:
                 continue
             grid_list.append(n_pos)
         return grid_list
@@ -84,13 +93,13 @@ class Graph():
         xc=math.ceil(x2_pos[0])-1
         yf=math.floor(x2_pos[1])-1
         yc=math.ceil(x2_pos[1])-1
-        if xf>=0&yf>=0&self.conv_map2[xf][yf]!=1:
+        if xf>=0 and yf>=0 and self.conv_map2[xf][yf]!=1:
             grid_list.append((xf,yf))
-        if xf>=0&yc<=98&self.conv_map2[xf][yc]!=1:
+        if xf>=0 and yc<=98 and self.conv_map2[xf][yc]!=1:
             grid_list.append((xf,yc))
-        if xc<=98&yf>=0&self.conv_map2[xc][yf]!=1:
+        if xc<=98 and yf>=0 and self.conv_map2[xc][yf]!=1:
             grid_list.append((xc,yf))
-        if xc<=98&yc<=98&self.conv_map2[xc][yc]!=1:
+        if xc<=98 and yc<=98 and self.conv_map2[xc][yc]!=1:
             grid_list.append((xc,yc))
         return grid_list
 
@@ -100,6 +109,7 @@ class Graph():
 
     def a_star(self, real_pos: tuple, w_pos: tuple):
         """
+        All the position is the position after the convolution
 
         Args:
             real_pos (tuple): the real position of robot
@@ -109,24 +119,33 @@ class Graph():
             list[(float, float)]: position list
         """
         p_q = PriorityQueue()
-        # i_list = self.get_init_pos(real_pos)
-        g_pos = conv.get_grid_pos(real_pos)
-
-        p_q.put((0, g_pos))
+        r_list = self.get_init_pos_2(real_pos)
+        # print(r_list, self.conv_real_pos2[r_list[0]])
+        for r in r_list:
+            p_q.put((0, r))
         fa = {}
         las_pos = None
         cmds = []
+        self.has_visited.clear()
         while p_q.empty() == False:
             val, g_pos = p_q.get()
-            if conv.close(self.conv_real_pos(g_pos), w_pos):
+            if self.has_visited.get(g_pos) != None:
+                continue
+            self.has_visited[g_pos] = 1
+            # print(g_pos, myutil.dist(self.conv_real_pos2[g_pos], w_pos))
+            if conv.close(self.conv_real_pos2[g_pos], w_pos):
                 las_pos = g_pos
                 break
             grid_list = self.get_adjacent_pos(g_pos)
+            # print(grid_list)
+            
             for cell in grid_list:
                 p_q.put((val+self.get_gval(g_pos, cell)+self.get_hval(cell, w_pos), cell))
                 fa[cell] = g_pos
+        p = las_pos
         while fa.get(p) != None:
-            cmds.append(p)
+            # print(self.conv_real_pos2[p])
+            cmds.append(self.conv_real_pos2[p])
             p = fa[p]
         return cmds
 

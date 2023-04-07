@@ -20,12 +20,11 @@ class PathPlanning:
         self.robots = robots
         self.num_of_wid = [0 for _ in range(8)]
 
-    def init_task(self):
+    def init_task(self, grid_map):
         self.graph.edge_matrix = np.zeros((len(self.graph.workbenches)+1, len(self.graph.workbenches)+1), dtype=Edge)
         # init the task robot can do
-        self.graph.create_edges()
-        self.graph.anaylse_wb()
-        self.graph.init_predict_tasktime()
+        self.graph.init_all()
+        self.graph.conv_map(grid_map)
 
     def get_robots(self):
         return self.robots
@@ -37,11 +36,15 @@ class PathPlanning:
         w1, w2 = self.graph.get_active_edge(rob.pos, rob.last_w, self.robots, frame)
         if w1 == None or w2 == None:
             return None
+        e = Edge(w1, w2)
+        # print('distance between robot %d and bench %d' % (rob.id, w1.ty), myutil.dist(rob.pos, w1.pos))
+        e.cmds1 = self.graph.a_star(rob.pos, w1.pos).copy()
+        e.cmds2 = self.graph.a_star(w1.pos, w2.pos).copy()
         w1.setLock(w1.ty, frame)
         w2.setLock(w1.ty, frame)
         # self.running_queue.put((e, frame))
         # raise Exception(str(w1))
-        return Edge(w1, w2)
+        return e
     
     # unlock one Robot which turn from TAKING to DELIVERING
     def unlock_first(self, rob: Robot, frame: int=0):

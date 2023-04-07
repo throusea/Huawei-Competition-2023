@@ -2,7 +2,7 @@ from path_planning import PathPlanning
 from graph import Graph
 from workbench import Workbench
 from robot import Robot
-
+import numpy as np
 
 robs = [
     Robot(0, (2, 1)),
@@ -12,10 +12,10 @@ robs = [
 ]
 
 wbs = [
-    Workbench(0, 1, (1,1)),
+    Workbench(0, 1, (2,1)),
     Workbench(1, 2, (1,11)),
     Workbench(2, 3, (1,21)),
-    Workbench(3, 4, (1,31)),
+    Workbench(3, 4, (3,2)),
     Workbench(4, 5, (1,41)),
     Workbench(5, 6, (2,1)),
     Workbench(6, 7, (2,11)),
@@ -23,41 +23,29 @@ wbs = [
     Workbench(8, 9, (31,31))
 ]
 
+grid_map = np.zeros((100, 100))
+
 graph = Graph(wbs)
 
 graph.create_edges()
+graph.conv_map(grid_map)
 
 pln = PathPlanning(graph, robs)
 pln.init_task()
 
-wbs[6].output = 1
+wbs[0].output = 1
 wbs[0].status = 10
 wbs[1].status = 10
 wbs[2].status = 10
-wbs[3].inputs = 0b010
-pln.allocate_rob(0)
 
+print(graph.conv_map2)
+print(graph.conv_real_pos2)
+
+# wbs[3].inputs = 0b010
+pln.allocate_rob(0)
 
 for r in robs:
     if r.loadingTask != None:
         print(r.loadingTask.fo.ty, r.loadingTask.to.ty)
-
-# print(pln.select_one_edge(robs[0]))
-print(graph.num_of_wid[7])
-graph.num_of_wid[7] = 0
-print(graph.get_profit(5, wbs[8]))
-# for w1 in graph.workbenches:
-#     for w2 in graph.workbenches:
-#         print((int)(graph.get_predict_tasktime(w1, w2)), end=" ")
-#     print()
-
-# print(wbs[0].getLockTime(wbs[0].ty))
-# for e in graph.edges:
-    # print(e.__str__())
-# print(pln.get_all_tasktype_fm_rob())
-
-# print(graph.get_active_edge((0, 0)))
-
-# print(graph.is_benchlocked(wbs[0], 1))
-
-print(graph.bonus(wbs[3]))
+        print(r.loadingTask.cmds1)
+        print(r.loadingTask.cmds2)
