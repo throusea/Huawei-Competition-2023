@@ -99,6 +99,7 @@ def repulsion(robot1: Robot, robot2: Robot, frame:int): # the repulsive force th
     #kdag = abs_da / math.pi * 0.8 + 0.2 # Have repulsion force.
     kdag=0 # Completely remove repulsion force.
 
+    mm = 4
     if mm != 4:
         mag = max(1, krf / r ** 2,0) * kdag
     else:
@@ -175,7 +176,7 @@ def next_velocity_and_angular_velocity(robot: Robot, other: Robot, frame:int):
             continue
         other_tar=target(other[i])
         if (tar is not None) and (other_tar is not None):
-            if other_tar[0] == tar[0] & other_tar[1] == tar[1]:
+            if other_tar[0] == tar[0] and other_tar[1] == tar[1]:
                 other_dist = myutil.dist(other[i].pos,other_tar)
                 if other[i].state != prio_state:
                     other_dist += thresh_dist
@@ -209,7 +210,7 @@ class RobotControl:
         pass
 
     def set_const(self):
-        set_k([13.74937475,5,13,2,35, 0.15,35,0,25,2], 1)
+        set_k([13.8,5,11,2, 175,0.25,35,0,25,2], 1)
         pass
     def update_frame(self, frame:int):
         self.frame = frame

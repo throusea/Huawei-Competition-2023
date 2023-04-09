@@ -24,22 +24,22 @@ wbs = [
 ]
 
 grid_map = np.zeros((100, 100))
+for i in range(100):
+    grid_map[50][i] = 1
 
 graph = Graph(wbs)
 
-graph.create_edges()
-graph.conv_map(grid_map)
-
 pln = PathPlanning(graph, robs)
-pln.init_task()
+pln.init_task(grid_map)
 
 wbs[0].output = 1
 wbs[0].status = 10
 wbs[1].status = 10
 wbs[2].status = 10
 
-print(graph.conv_map2)
-print(graph.conv_real_pos2)
+# print(graph.conv_map2)
+# print(graph.flooded_map2)
+# print(graph.conv_real_pos2)
 
 # wbs[3].inputs = 0b010
 pln.allocate_rob(0)

@@ -12,7 +12,7 @@ import math
 import myutil
 import convolution as conv
 
-TOTAL_FRAME = 9000
+TOTAL_FRAME = 15000
 
 
 class Graph():
@@ -23,6 +23,8 @@ class Graph():
         self.conv_real_pos2 = None
         self.conv_map3 = None
         self.conv_real_pos3 = None
+        self.flooded_map2 = None
+        self.flooded_map3 = None
         self.has_visited = {}
 
         self.num_of_wid = [0] * 10
@@ -53,61 +55,33 @@ class Graph():
     def conv_map(self, grid_map):
         self.conv_map2, self.conv_real_pos2 = conv.conv(grid_map, np.array([[1, 1], [1, 1]]))
         self.conv_map3, self.conv_real_pos3 = conv.conv(grid_map, np.array([[0.5, 1., 0.5], [1., 1., 1.], [0.5, 1., 0.5]]))
+        self.flooded_map2 = myutil.check_block(self.conv_map2)
+        self.flooded_map3 = myutil.check_block(self.conv_map3)
 
-    def get_hval(self, grid_pos, w_pos):
-        return myutil.dist(self.conv_real_pos2[grid_pos], w_pos)
+    def get_hval(self, grid_pos, w_pos, conv_r_pos):
+        return myutil.dist(conv_r_pos[grid_pos], w_pos)
     
-    def get_gval(self, g_pos1, g_pos2):
-        return myutil.dist(self.conv_real_pos2[g_pos1], self.conv_real_pos2[g_pos2])
+    def get_gval(self, g_pos1, g_pos2, conv_r_pos):
+        return myutil.dist(conv_r_pos[g_pos1], conv_r_pos[g_pos2])
 
-    def get_adjacent_pos(self, grid_pos):
+    def get_adjacent_pos(self, grid_pos, conv_map):
         grid_list = []
+        k = conv_map.shape[0]
         dx = [0, 0, 1, -1, 1, 1, -1, -1]
         dy = [1, -1, 0, 0, 1, -1, 1, -1]
         pos = grid_pos
         for i in range(8):
             n_pos = (pos[0]+dx[i], pos[1]+dy[i])
-            if n_pos[0] < 0 or n_pos[0] >= 99:
+            if n_pos[0] < 0 or n_pos[0] >= k:
                 continue
-            if n_pos[1] < 0 or n_pos[1] >= 99:
+            if n_pos[1] < 0 or n_pos[1] >= k:
                 continue
-            if self.conv_map2[n_pos] == 1 or self.has_visited.get(n_pos) != None:
+            if conv_map[n_pos] >= 1 or self.has_visited.get(n_pos) != None:
                 continue
             grid_list.append(n_pos)
         return grid_list
-    
-    def get_init_pos_2(self, real_pos: tuple):
-        """Description
-        get the initial position for the robot in convoluted map.
 
-        Args:
-            real_pos (tuple): real position of robot
-
-        Returns:
-            list[]: the initial position list for robot
-        """
-        transformed_pos=convolution.get_transformed_pos(real_pos)
-        x2_pos=(transformed_pos[0]*2,transformed_pos[1]*2)
-        grid_list=[]
-        xf=math.floor(x2_pos[0])-1
-        xc=math.ceil(x2_pos[0])-1
-        yf=math.floor(x2_pos[1])-1
-        yc=math.ceil(x2_pos[1])-1
-        if xf>=0 and yf>=0 and self.conv_map2[xf][yf]!=1:
-            grid_list.append((xf,yf))
-        if xf>=0 and yc<=98 and self.conv_map2[xf][yc]!=1:
-            grid_list.append((xf,yc))
-        if xc<=98 and yf>=0 and self.conv_map2[xc][yf]!=1:
-            grid_list.append((xc,yf))
-        if xc<=98 and yc<=98 and self.conv_map2[xc][yc]!=1:
-            grid_list.append((xc,yc))
-        return grid_list
-
-    def get_init_pos_3(self, real_pos: tuple):
-        transformed_pos = convolution.get_transformed_pos(real_pos)
-        return math.floor(transformed_pos[0] * 2) - 1, math.floor(transformed_pos[1] * 2) - 1
-
-    def a_star(self, real_pos: tuple, w_pos: tuple):
+    def a_star(self, real_pos: tuple, w_pos: tuple, conv_id: int=2):
         """
         All the position is the position after the convolution
 
@@ -119,8 +93,10 @@ class Graph():
             list[(float, float)]: position list
         """
         p_q = PriorityQueue()
-        r_list = self.get_init_pos_2(real_pos)
-        # print(r_list, self.conv_real_pos2[r_list[0]])
+        r_list = conv.get_init_pos_2(real_pos, self.conv_map2) if conv_id == 2 else conv.get_init_pos_3(real_pos)
+        conv_r_pos = self.conv_real_pos2 if conv_id == 2 else self.conv_real_pos3
+        conv_map = self.conv_map2 if conv_id == 2 else self.conv_map3
+        # print(r_list, conv_r_pos[r_list[0]])
         for r in r_list:
             p_q.put((0, r))
         fa = {}
@@ -132,21 +108,23 @@ class Graph():
             if self.has_visited.get(g_pos) != None:
                 continue
             self.has_visited[g_pos] = 1
-            # print(g_pos, myutil.dist(self.conv_real_pos2[g_pos], w_pos))
-            if conv.close(self.conv_real_pos2[g_pos], w_pos):
+            # print(g_pos, myutil.dist(conv_r_pos[g_pos], w_pos))
+            if conv.close(conv_r_pos[g_pos], w_pos):
                 las_pos = g_pos
                 break
-            grid_list = self.get_adjacent_pos(g_pos)
+            grid_list = self.get_adjacent_pos(g_pos, conv_map)
             # print(grid_list)
             
             for cell in grid_list:
-                p_q.put((val+self.get_gval(g_pos, cell)+self.get_hval(cell, w_pos), cell))
+                p_q.put((self.get_gval(g_pos, cell, conv_r_pos)+self.get_hval(cell, w_pos, conv_r_pos), cell))
                 fa[cell] = g_pos
         p = las_pos
         while fa.get(p) != None:
             # print(self.conv_real_pos2[p])
-            cmds.append(self.conv_real_pos2[p])
+            cmds.append(conv_r_pos[p])
             p = fa[p]
+        cmds.reverse()
+        cmds.append(w_pos)
         return cmds
 
 
@@ -309,7 +287,8 @@ class Graph():
                 t1 = self.get_predict_tasktime(near_w, w1) if near_w != None else self.get_predict_tasktime_on_pos(r_pos, w1)
                 if self.is_active_outbench(w1, t1, frame) and self.is_active_inbench(w1, w2) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
-                   w2.id == w[0].id and myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos) < myutil.dist(r_pos, w[0].pos) * self.k_dist:
+                   w2.id == w[0].id and myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos) < myutil.dist(r_pos, w[0].pos) * self.k_dist and\
+                   self.in_one_flood(w1, w2) == True:
                     if w_tmp[0] == None:
                         w_tmp = (w1, w2)
                     elif myutil.dist(r_pos, w_tmp[0].pos) + myutil.dist(w_tmp[0].pos, w_tmp[1].pos) > myutil.dist(r_pos, w1.pos) + myutil.dist(w1.pos, w2.pos):
@@ -319,6 +298,19 @@ class Graph():
             return w
         else:
             return w_tmp
+    
+    def in_one_flood(self, w1: Workbench, w2: Workbench):
+        p_list = conv.get_init_pos_2(w1.pos, self.conv_map2)
+        f1, f2 = None, None
+        for p in p_list:
+            if self.flooded_map2[p] != 0:
+                f1 = self.flooded_map2[p]
+        f2 = self.flooded_map3[conv.get_init_pos_3(w2.pos)[0]]
+        # raise Exception(f2)
+        if f1 == None or f2 == None:
+            return False
+        return f1 == f2
+        
 
     def get_active_edge(self, r_pos, near_w: Workbench=None, robots: [Robot]=None, frame: int=0):
         ans_w = (None, None)
@@ -338,7 +330,7 @@ class Graph():
                 if self.is_active_outbench(w1, t1, frame) and self.is_active_inbench(w1, w2) and\
                    (self.get_profit(w1.ty, w2, robots, frame) * self.compare_to_ans((w1, w2), ans_w) / (t1 + t2) > profit / (t[0] + t[1])) and\
                    (self.is_benchlocked(w1, w1.ty) == False or self.is_bench_predict_unlock(w1, frame) == True) and self.is_benchlocked(w2, w1.ty) == False and\
-                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * self.k_las <= TOTAL_FRAME - frame:
+                   self.any_more_great_robot(r_pos, w1, robots) == False and (t1+t2) * self.k_las <= TOTAL_FRAME - frame and self.in_one_flood(w1, w2) == True:
                     t = (t1, t2)
                     profit = self.get_profit(w1.ty, w2, robots, frame)
                     ans_w = (w1, w2)

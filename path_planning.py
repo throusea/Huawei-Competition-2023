@@ -39,11 +39,9 @@ class PathPlanning:
         e = Edge(w1, w2)
         # print('distance between robot %d and bench %d' % (rob.id, w1.ty), myutil.dist(rob.pos, w1.pos))
         e.cmds1 = self.graph.a_star(rob.pos, w1.pos).copy()
-        e.cmds2 = self.graph.a_star(w1.pos, w2.pos).copy()
+        e.cmds2 = self.graph.a_star(w1.pos, w2.pos, 3).copy()
         w1.setLock(w1.ty, frame)
         w2.setLock(w1.ty, frame)
-        # self.running_queue.put((e, frame))
-        # raise Exception(str(w1))
         return e
     
     # unlock one Robot which turn from TAKING to DELIVERING
@@ -80,6 +78,7 @@ class PathPlanning:
         return b
     
     def change_robot_tobech(self):
+        return 
         for r1 in self.robots:
             for r2 in self.robots:
                 if r1.id == r2.id:

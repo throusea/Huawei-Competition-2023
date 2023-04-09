@@ -6,7 +6,7 @@ def dist(s, d):
 def is_in_set(b: int, b_set: int):
     return (b_set & (1<<b)) != 0
 
-def bfs(i, j, cnt, n):
+def bfs(i, j, cnt, w, h, vis, mmp, mp_ret):
     q = []
     s = 0
     r = 0
@@ -22,30 +22,29 @@ def bfs(i, j, cnt, n):
         if(x-1 >= 0):
             s+=1
             q.append((x-1, y))
-        if (x + 1 < n):
+        if (x + 1 < w):
             s += 1
             q.append((x+1, y))
         if (y - 1 >= 0):
             s += 1
             q.append((x, y-1))
-        if (y + 1 < n):
+        if (y + 1 < h):
             s += 1
             q.append((x, y+1))
 
-def check_block(n: int, mp):
-    global vis
-    vis = np.zeros((n, n), dtype=int)
-    for i in range(0, n):
-        for j in range(0, n):
+def check_block(mp):
+    w, h = mp.shape
+    mmp = np.zeros(mp.shape)
+    vis = np.zeros((w, h), dtype=int)
+    for i in range(0, w):
+        for j in range(0, h):
             vis[i][j] = 0
+            mmp[i][j] = 1 if mp[i][j] >= 1 else 0
     cnt = 1
-    global mmp
-    mmp = mp
-    global mp_ret
-    mp_ret = np.zeros((n, n), dtype=int)
-    for i in range(0, n):
-        for j in range(0, n):
-            if vis[i][j] == 0 and mp[i][j] != 1:
+    mp_ret = np.zeros((w, h), dtype=int)
+    for i in range(0, w):
+        for j in range(0, h):
+            if vis[i][j] == 0 and mmp[i][j] != 1:
                 cnt+=1
-                bfs(i, j, cnt, n)
+                bfs(i, j, cnt, w, h, vis, mmp, mp_ret)
     return mp_ret
